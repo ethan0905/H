@@ -35,7 +35,7 @@ A modern, decentralized social media platform built for World App using minikit-
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd tiktok-youtube-x-world
+cd H
 ```
 
 2. Install dependencies:
@@ -162,7 +162,7 @@ For support and questions:
 - Check the World App documentation
 - Review the minikit-js documentation
 
-llm instruct: https://docs.world.org/llms-full.txt
-docs: https://docs.world.org/mini-apps/quick-start/installing
-minikit-js: https://github.com/worldcoin/minikit-js
-apple og logo process to make: https://www.youtube.com/watch?v=lg5R9PCaMBU
+llm instruct: https://docs.world.org/llms-full.txt  
+docs: https://docs.world.org/mini-apps/quick-start/installing  
+minikit-js: https://github.com/worldcoin/minikit-js  
+apple og logo process to make: https://www.youtube.com/watch?v=lg5R9PCaMBU  
