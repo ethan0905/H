@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import MiniKitProvider from '@/components/providers/MiniKitProvider';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import Toaster from '@/components/ui/Toaster';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import './globals.css';
@@ -21,18 +22,25 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={inter.className}>
         <ErrorBoundary>
-          <MiniKitProvider>
-            <div className="min-h-screen bg-gray-50">
-              {children}
-            </div>
-            <Toaster />
-          </MiniKitProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <MiniKitProvider>
+              <div className="min-h-screen bg-background text-foreground">
+                {children}
+              </div>
+              <Toaster />
+            </MiniKitProvider>
+          </ThemeProvider>
         </ErrorBoundary>
       </body>
     </html>

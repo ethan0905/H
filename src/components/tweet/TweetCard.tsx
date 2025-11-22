@@ -52,6 +52,13 @@ export default function TweetCard({ tweet }: TweetCardProps) {
     }
   };
 
+  const handleProfileClick = (userId: string) => {
+    console.log('Navigating to profile:', userId);
+    const encodedUserId = encodeURIComponent(userId);
+    console.log('Encoded user ID:', encodedUserId);
+    router.push(`/profile/${encodedUserId}`);
+  };
+
   const fetchComments = async () => {
     if (commentsLoading) return;
     
@@ -127,21 +134,26 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   };
 
   return (
-    <div className="tweet-card">
+    <div className="p-4 hover:bg-card transition cursor-pointer border-b border-border">
       <div className="flex space-x-3">
         {/* User Avatar */}
-        <div className="user-avatar">
-          {tweet.author.profilePictureUrl ? (
-            <img
-              src={tweet.author.profilePictureUrl}
-              alt={`${tweet.author.username}'s avatar`}
-              className="w-full h-full rounded-full object-cover"
-            />
-          ) : (
-            <span>
-              {(tweet.author.displayName || tweet.author.username || 'U').charAt(0).toUpperCase()}
-            </span>
-          )}
+        <div className="flex-shrink-0">
+          <div 
+            className="w-12 h-12 rounded-full bg-muted cursor-pointer overflow-hidden border-2 border-border" 
+            onClick={() => handleProfileClick(tweet.author.id)}
+          >
+            {tweet.author.profilePictureUrl ? (
+              <img
+                src={tweet.author.profilePictureUrl}
+                alt={`${tweet.author.username}'s avatar`}
+                className="w-full h-full rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-semibold text-lg">
+                {(tweet.author.displayName || tweet.author.username || 'U').charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tweet Content */}
@@ -149,13 +161,8 @@ export default function TweetCard({ tweet }: TweetCardProps) {
           {/* Header */}
           <div className="flex items-center space-x-2 mb-2">
             <button 
-              onClick={() => {
-                console.log('Navigating to profile:', tweet.author.id);
-                const encodedUserId = encodeURIComponent(tweet.author.id);
-                console.log('Encoded user ID:', encodedUserId);
-                router.push(`/profile/${encodedUserId}`);
-              }}
-              className="font-semibold text-gray-900 truncate hover:underline text-left"
+              onClick={() => handleProfileClick(tweet.author.id)}
+              className="font-semibold text-foreground truncate hover:underline text-left"
             >
               {tweet.author.displayName || tweet.author.username}
             </button>
@@ -165,35 +172,25 @@ export default function TweetCard({ tweet }: TweetCardProps) {
               size="sm"
             />
             <button 
-              onClick={() => {
-                console.log('Navigating to profile:', tweet.author.id);
-                const encodedUserId = encodeURIComponent(tweet.author.id);
-                console.log('Encoded user ID:', encodedUserId);
-                router.push(`/profile/${encodedUserId}`);
-              }}
-              className="text-gray-500 text-sm hover:underline"
+              onClick={() => handleProfileClick(tweet.author.id)}
+              className="text-muted-foreground text-sm hover:underline"
             >
               @{tweet.author.username}
             </button>
-            <span className="text-gray-500 text-sm">·</span>
-            <span className="text-gray-500 text-sm">
+            <span className="text-muted-foreground text-sm">·</span>
+            <span className="text-muted-foreground text-sm">
               {formatTime(tweet.createdAt)}
             </span>
             <div className="ml-auto flex items-center space-x-1">
               <button
-                onClick={() => {
-                  console.log('Profile button clicked for:', tweet.author.id);
-                  const encodedUserId = encodeURIComponent(tweet.author.id);
-                  console.log('Encoded user ID:', encodedUserId);
-                  router.push(`/profile/${encodedUserId}`);
-                }}
-                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors"
+                onClick={() => handleProfileClick(tweet.author.id)}
+                className="px-2 py-1 text-xs bg-muted hover:bg-accent rounded-full text-muted-foreground transition-colors"
               >
                 Profile
               </button>
               <button
                 onClick={() => setShowActions(!showActions)}
-                className="p-1 rounded-full hover:bg-gray-100 text-gray-500"
+                className="p-1 rounded-full hover:bg-muted text-muted-foreground"
               >
                 <MoreHorizontal size={16} />
               </button>
@@ -202,14 +199,14 @@ export default function TweetCard({ tweet }: TweetCardProps) {
 
           {/* Content */}
           <div className="mb-3">
-            <p className="text-gray-900 whitespace-pre-wrap">
+            <p className="text-foreground whitespace-pre-wrap">
               {tweet.content}
             </p>
           </div>
 
           {/* Media */}
           {tweet.media && tweet.media.length > 0 && (
-            <div className="mb-3 rounded-lg overflow-hidden">
+            <div className="mb-3 rounded-lg overflow-hidden border border-border">
               {tweet.media.map((item) => (
                 <div key={item.id}>
                   {item.type === 'image' ? (
@@ -231,11 +228,11 @@ export default function TweetCard({ tweet }: TweetCardProps) {
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-8 text-gray-500">
+          <div className="flex items-center space-x-8 text-muted-foreground">
             <button
               onClick={handleToggleComments}
-              className={`flex items-center space-x-2 hover:text-blue-500 transition-colors ${
-                showComments ? 'text-blue-500' : ''
+              className={`flex items-center space-x-2 hover:text-accent transition-colors ${
+                showComments ? 'text-accent' : ''
               }`}
             >
               <MessageCircle size={18} />
@@ -254,8 +251,8 @@ export default function TweetCard({ tweet }: TweetCardProps) {
 
             <button
               onClick={handleLike}
-              className={`flex items-center space-x-2 hover:text-red-500 transition-colors ${
-                tweet.isLiked ? 'text-red-500' : ''
+              className={`flex items-center space-x-2 hover:text-destructive transition-colors ${
+                tweet.isLiked ? 'text-destructive' : ''
               }`}
             >
               <Heart size={18} fill={tweet.isLiked ? 'currentColor' : 'none'} />
@@ -264,7 +261,7 @@ export default function TweetCard({ tweet }: TweetCardProps) {
 
             <button
               onClick={handleShare}
-              className="flex items-center space-x-2 hover:text-blue-500 transition-colors"
+              className="flex items-center space-x-2 hover:text-accent transition-colors"
             >
               <Share size={18} />
             </button>
@@ -272,12 +269,12 @@ export default function TweetCard({ tweet }: TweetCardProps) {
 
           {/* Comments Section */}
           {showComments && (
-            <div className="mt-4 border-t border-gray-100 pt-4">
+            <div className="mt-4 border-t border-border pt-4">
               {/* Comment Form */}
               {user && (
                 <form onSubmit={handleCommentSubmit} className="mb-4">
                   <div className="flex space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600 overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-muted-foreground overflow-hidden">
                       {user.profilePictureUrl || user.avatar ? (
                         <img
                           src={user.profilePictureUrl || user.avatar}
@@ -295,16 +292,16 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                           value={commentText}
                           onChange={(e) => setCommentText(e.target.value)}
                           placeholder="Write a comment..."
-                          className="flex-1 px-3 py-2 border border-gray-200 rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="flex-1 px-3 py-2 border border-border rounded-l-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-background text-foreground"
                           maxLength={280}
                         />
                         <button
                           type="submit"
                           disabled={!commentText.trim() || commentSubmitting}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-r-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                          className="px-4 py-2 bg-accent text-accent-foreground rounded-r-full hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                         >
                           {commentSubmitting ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-4 h-4 border-2 border-accent-foreground border-t-transparent rounded-full animate-spin"></div>
                           ) : (
                             <Send size={16} />
                           )}
@@ -318,13 +315,13 @@ export default function TweetCard({ tweet }: TweetCardProps) {
               {/* Comments List */}
               {commentsLoading ? (
                 <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent mx-auto"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-accent border-t-transparent mx-auto"></div>
                 </div>
               ) : comments.length > 0 ? (
                 <div className="space-y-3">
                   {comments.map((comment) => (
                     <div key={comment.id} className="flex space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600 overflow-hidden">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-muted-foreground overflow-hidden">
                         {comment.author.profilePictureUrl || comment.author.avatar ? (
                           <img
                             src={comment.author.profilePictureUrl || comment.author.avatar}
@@ -336,27 +333,27 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                         )}
                       </div>
                       <div className="flex-1">
-                        <div className="bg-gray-50 rounded-lg px-3 py-2">
+                        <div className="bg-card rounded-lg px-3 py-2 border border-border">
                           <div className="flex items-center space-x-2 mb-1">
                             <button
                               onClick={() => router.push(`/profile/${comment.author.id}`)}
-                              className="font-semibold text-gray-900 hover:underline"
+                              className="font-semibold text-foreground hover:underline"
                             >
                               {comment.author.displayName || comment.author.username}
                             </button>
                             <VerifiedBadge user={comment.author} size="sm" />
-                            <span className="text-gray-500 text-xs">
+                            <span className="text-muted-foreground text-xs">
                               {formatTime(comment.createdAt)}
                             </span>
                           </div>
-                          <p className="text-gray-900 text-sm">{comment.content}</p>
+                          <p className="text-foreground text-sm">{comment.content}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>
+                <p className="text-muted-foreground text-center py-4">No comments yet. Be the first to comment!</p>
               )}
             </div>
           )}

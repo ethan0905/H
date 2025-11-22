@@ -222,7 +222,7 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
         <div className="text-center">
           <button
             onClick={() => setShowQR(false)}
-            className="text-sm text-blue-600 hover:text-blue-800 underline"
+            className="text-sm text-primary hover:text-primary/80 underline"
           >
             ← Back to other options
           </button>
@@ -238,14 +238,14 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
         <button
           onClick={handleVerifyClick}
           disabled={isLoading}
-          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed py-3 px-4 rounded-lg font-medium transition-colors"
         >
           {isLoading ? 'Verifying...' : '🌍 Verify with World ID (MiniKit)'}
         </button>
       ) : (
         <button
           onClick={() => setShowQR(true)}
-          className="w-full btn-primary"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 px-4 rounded-lg font-medium transition-colors"
         >
           🌍 Verify with World ID
         </button>
@@ -253,21 +253,21 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
       
       {/* Divider */}
       <div className="flex items-center">
-        <div className="flex-1 border-t border-gray-300"></div>
-        <span className="px-3 text-xs text-gray-500 bg-white">or</span>
-        <div className="flex-1 border-t border-gray-300"></div>
+        <div className="flex-1 border-t border-border"></div>
+        <span className="px-3 text-xs text-muted-foreground bg-background">or</span>
+        <div className="flex-1 border-t border-border"></div>
       </div>
       
       {/* Wallet Connect */}
       <button
         onClick={handleWalletAuth}
         disabled={isLoading}
-        className="w-full btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed py-3 px-4 rounded-lg font-medium transition-colors"
       >
         {isLoading ? 'Connecting...' : '👛 Connect Wallet'}
       </button>
       
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-xs text-muted-foreground text-center">
         World ID provides proof of personhood while protecting your privacy
       </p>
     </div>
