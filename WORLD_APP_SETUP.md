@@ -3,7 +3,7 @@
 ## ✅ Configuration Complete
 
 Your World Social app is now configured with your API key:
-- **App ID**: `api_a2V5Xzk5MjJjMmI0NmJiNDk4NGJhMzM5YzA3ZDk0YmE5NWY0OnNrXzFiMGM5MjhlMmU1OTY0NDRlZTI1MzQxYzQ4NTkzZDllNjkzYjQzOTJlYmVkZmVmMw`
+- **App ID**: `api_a2V5Xzk5MjJj....mVkZmVmMw`
 - **Environment**: Configured in `.env.local`
 - **MiniKit**: Properly initialized with your API key
 
@@ -140,8 +140,8 @@ railway up
 
 ### Environment Variables to Set
 ```env
-NEXT_PUBLIC_WORLD_APP_ID=api_a2V5Xzk5MjJjMmI0NmJiNDk4NGJhMzM5YzA3ZDk0YmE5NWY0OnNrXzFiMGM5MjhlMmU1OTY0NDRlZTI1MzQxYzQ4NTkzZDllNjkzYjQzOTJlYmVkZmVmMw
-NEXT_PUBLIC_MINIKIT_APP_ID=api_a2V5Xzk5MjJjMmI0NmJiNDk4NGJhMzM5YzA3ZDk0YmE5NWY0OnNrXzFiMGM5MjhlMmU1OTY0NDRlZTI1MzQxYzQ4NTkzZDllNjkzYjQzOTJlYmVkZmVmMw
+NEXT_PUBLIC_WORLD_APP_ID=api_a2V5Xzk5MjJjMmI0.....zOTJlYmVkZmVmMw
+NEXT_PUBLIC_MINIKIT_APP_ID=api_a2V5Xzk5MjJjMm......jkzYjQzOTJlYmVkZmVmMw
 WORLD_ID_ACTION_ID=wid_staging_your_action_id_here
 ```
 
