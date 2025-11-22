@@ -1,0 +1,4 @@
+{
+  "/page": "app/page.js",
+  "/api/tweets/route": "app/api/tweets/route.js"
+}
