@@ -251,8 +251,8 @@ export default function TweetCard({ tweet }: TweetCardProps) {
 
             <button
               onClick={handleLike}
-              className={`flex items-center space-x-2 hover:text-destructive transition-colors ${
-                tweet.isLiked ? 'text-destructive' : ''
+              className={`flex items-center space-x-2 hover:text-[#FF0000] transition-colors ${
+                tweet.isLiked ? 'text-[#FF0000]' : ''
               }`}
             >
               <Heart size={18} fill={tweet.isLiked ? 'currentColor' : 'none'} />
@@ -292,16 +292,16 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                           value={commentText}
                           onChange={(e) => setCommentText(e.target.value)}
                           placeholder="Write a comment..."
-                          className="flex-1 px-3 py-2 border border-border rounded-l-full focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-background text-foreground"
+                          className="flex-1 px-3 py-2 border border-border rounded-l-full focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent bg-background text-foreground"
                           maxLength={280}
                         />
                         <button
                           type="submit"
                           disabled={!commentText.trim() || commentSubmitting}
-                          className="px-4 py-2 bg-accent text-accent-foreground rounded-r-full hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                          className="px-4 py-2 bg-brand hover:bg-brand-600 text-black font-semibold rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                         >
                           {commentSubmitting ? (
-                            <div className="w-4 h-4 border-2 border-accent-foreground border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                           ) : (
                             <Send size={16} />
                           )}

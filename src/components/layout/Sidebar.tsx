@@ -39,10 +39,10 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
           <button
             key={item.id}
             onClick={() => onViewChange(item.id as View)}
-            className={`w-full text-left px-4 py-3 rounded-lg transition ${
+            className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
               currentView === item.id
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-card hover:text-foreground"
+                ? "bg-brand/20 text-brand border-2 border-brand"
+                : "text-muted-foreground hover:bg-brand/10 hover:text-brand hover:border-2 hover:border-brand border-2 border-transparent"
             }`}
           >
             <span className="mr-3">{item.icon}</span>

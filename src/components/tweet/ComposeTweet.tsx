@@ -104,7 +104,7 @@ export default function ComposeTweet({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={placeholder}
-            className="w-full min-h-[100px] p-3 border border-border rounded-lg resize-none focus:ring-2 focus:ring-accent focus:border-transparent outline-none text-lg bg-background text-foreground"
+            className="w-full min-h-[100px] p-3 border border-border rounded-lg resize-none focus:ring-2 focus:ring-brand focus:border-transparent outline-none text-lg bg-background text-foreground"
             disabled={isLoading}
           />
 
@@ -140,11 +140,11 @@ export default function ComposeTweet({
               <button
                 onClick={handleSubmit}
                 disabled={!canTweet}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-2 rounded-lg font-medium transition-colors"
+                className="bg-brand hover:bg-brand-600 text-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed px-6 py-2 rounded-lg transition-colors"
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                     <span>Posting...</span>
                   </div>
                 ) : (
