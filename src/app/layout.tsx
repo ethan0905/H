@@ -9,10 +9,10 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'X World - Social Network for Humans',
-  description: 'A Twitter-like social platform built for verified humans using World ID',
-  keywords: ['social', 'twitter', 'world id', 'minikit', 'blockchain'],
-  authors: [{ name: 'X World Team' }],
+  title: 'H World - Social Network for Humans',
+  description: 'A social platform built for verified humans using World ID',
+  keywords: ['social', 'twitter', 'world id', 'minikit', 'blockchain', 'humanverse'],
+  authors: [{ name: 'H World Team' }],
   viewport: 'width=device-width, initial-scale=1',
 };
 

@@ -13,8 +13,11 @@ export default function HomePage() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8 text-center">
           <div>
+            <div className="mb-4 flex items-center justify-center">
+              <span className="text-6xl font-bold text-brand">H</span>
+            </div>
             <h1 className="text-4xl font-bold text-foreground mb-2">
-              Welcome to World Social
+              Welcome to H World
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
               Connect with the world through verified identities and decentralized conversations.
@@ -23,8 +26,8 @@ export default function HomePage() {
           
           <div className="bg-card p-8 rounded-2xl shadow-lg border border-border">
             <div className="mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">🌍</span>
+              <div className="w-16 h-16 bg-brand/10 border-2 border-brand rounded-full mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl font-bold text-brand">H</span>
               </div>
               <h2 className="text-xl font-semibold text-foreground mb-2">
                 Join the Conversation
