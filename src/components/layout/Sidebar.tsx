@@ -28,7 +28,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
       {/* Logo */}
       <div className="mb-12">
         <div className="text-3xl font-bold">
-          <span className="bg-gradient-to-r from-accent to-secondary bg-clip-text text-transparent">H</span>
+          <span className="text-brand">H</span>
         </div>
         <p className="text-sm text-muted-foreground mt-1">Humanverse</p>
       </div>
@@ -53,7 +53,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
 
       {/* Compose Button */}
       <div className="space-y-3">
-        <Button className="w-full bg-gradient-to-r from-accent to-secondary text-background font-semibold rounded-lg py-3 hover:opacity-90 transition">
+        <Button className="w-full bg-brand hover:bg-brand-600 text-black font-semibold rounded-lg py-3 transition-colors">
           + Compose
         </Button>
         <Button

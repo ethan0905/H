@@ -42,6 +42,20 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Brand green color
+        brand: {
+          DEFAULT: '#00FFBE',
+          50: '#E6FFF8',
+          100: '#CCFFF1',
+          200: '#99FFE3',
+          300: '#66FFD5',
+          400: '#33FFC7',
+          500: '#00FFBE',
+          600: '#00CC98',
+          700: '#009972',
+          800: '#00664C',
+          900: '#003326',
+        },
         // Keep the original primary colors as fallback
         'primary-original': {
           50: '#eff6ff',

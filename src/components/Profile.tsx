@@ -348,10 +348,10 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-brand border-t-transparent mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
         </div>
       </div>
     );
@@ -361,10 +361,10 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
   if (!profileUser) {
     console.log('Profile component: profileUser still null after useEffect');
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-brand border-t-transparent mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
         </div>
       </div>
     );
@@ -373,21 +373,21 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
   const isOwnProfile = currentUser?.id === userId;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => router.push('/')}
-                className="p-2 rounded-full hover:bg-gray-100"
+                className="p-2 rounded-full hover:bg-muted text-foreground"
               >
                 ←
               </button>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-xl font-bold text-foreground">
                   {profileUser.displayName || profileUser.username}
                 </h1>
-                <p className="text-sm text-gray-500">{userStats.tweetsCount} tweets</p>
+                <p className="text-sm text-muted-foreground">{userStats.tweetsCount} tweets</p>
               </div>
             </div>
             
@@ -396,7 +396,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
               isOwnProfile ? (
                 <button
                   onClick={() => setShowEditModal(true)}
-                  className="px-4 py-2 rounded-full font-semibold text-sm transition-colors bg-gray-200 text-gray-900 hover:bg-gray-300"
+                  className="px-4 py-2 rounded-full font-semibold text-sm transition-colors border-2 border-brand text-brand hover:bg-brand hover:text-black"
                 >
                   Edit Profile
                 </button>
@@ -406,8 +406,8 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
                   disabled={followLoading}
                   className={`px-4 py-2 rounded-full font-semibold text-sm transition-colors ${
                     isFollowing
-                      ? 'bg-gray-200 text-gray-900 hover:bg-red-100 hover:text-red-600'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-secondary text-secondary-foreground hover:bg-destructive hover:text-destructive-foreground'
+                      : 'bg-brand text-black hover:bg-brand-600'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {followLoading ? '...' : isFollowing ? 'Unfollow' : 'Follow'}
@@ -419,15 +419,15 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
 
       <main className="max-w-2xl mx-auto">
         {/* Profile Info */}
-        <div className="bg-white">
+        <div className="bg-card">
           {/* Cover Photo */}
-          <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-500"></div>
+          <div className="h-48 bg-gradient-to-r from-brand-900 to-brand-700"></div>
           
           {/* Profile Details */}
           <div className="px-4 pb-4">
             {/* Avatar */}
             <div className="relative -mt-16 mb-4">
-              <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 overflow-hidden">
+              <div className="w-32 h-32 rounded-full border-4 border-background bg-muted flex items-center justify-center text-4xl font-bold text-muted-foreground overflow-hidden">
                 {profileUser.profilePictureUrl || profileUser.avatar ? (
                   <img
                     src={profileUser.profilePictureUrl || profileUser.avatar}
@@ -443,7 +443,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
             {/* Name and Verification */}
             <div className="mb-4">
               <div className="flex items-center space-x-2 mb-1">
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-foreground">
                   {profileUser.displayName || profileUser.username}
                 </h1>
                 <VerifiedBadge 
@@ -452,19 +452,19 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
                   size="md"
                 />
               </div>
-              <p className="text-gray-500">@{profileUser.username}</p>
+              <p className="text-muted-foreground">@{profileUser.username}</p>
             </div>
 
             {/* Bio */}
             {profileUser.bio && (
               <div className="mb-4">
-                <p className="text-gray-900">{profileUser.bio}</p>
+                <p className="text-foreground">{profileUser.bio}</p>
               </div>
             )}
 
             {/* Join Date */}
             <div className="mb-4">
-              <p className="text-gray-500 text-sm">
+              <p className="text-muted-foreground text-sm">
                 📅 Joined {profileUser.createdAt ? new Date(profileUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'recently'}
               </p>
             </div>
@@ -472,30 +472,30 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
             {/* Stats */}
             <div className="flex space-x-6 mb-4">
               <div>
-                <span className="font-bold text-gray-900">{userStats.followingCount}</span>
-                <span className="text-gray-500 ml-1">Following</span>
+                <span className="font-bold text-foreground">{userStats.followingCount}</span>
+                <span className="text-muted-foreground ml-1">Following</span>
               </div>
               <div>
-                <span className="font-bold text-gray-900">{userStats.followersCount}</span>
-                <span className="text-gray-500 ml-1">Followers</span>
+                <span className="font-bold text-foreground">{userStats.followersCount}</span>
+                <span className="text-muted-foreground ml-1">Followers</span>
               </div>
               <div>
-                <span className="font-bold text-gray-900">{userStats.likesCount}</span>
-                <span className="text-gray-500 ml-1">Likes</span>
+                <span className="font-bold text-foreground">{userStats.likesCount}</span>
+                <span className="text-muted-foreground ml-1">Likes</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white border-b border-gray-200 sticky top-16 z-40">
+        <div className="bg-card border-b border-border sticky top-16 z-40">
           <div className="flex">
             <button
               onClick={() => setActiveTab('tweets')}
               className={`flex-1 py-4 text-center transition-colors ${
                 activeTab === 'tweets'
-                  ? 'text-blue-600 border-b-2 border-blue-600 font-semibold'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-brand border-b-2 border-brand font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Tweets ({userStats.tweetsCount})
@@ -504,8 +504,8 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
               onClick={() => setActiveTab('likes')}
               className={`flex-1 py-4 text-center transition-colors ${
                 activeTab === 'likes'
-                  ? 'text-blue-600 border-b-2 border-blue-600 font-semibold'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-brand border-b-2 border-brand font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Likes ({userStats.likesCount})
@@ -514,8 +514,8 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
               onClick={() => setActiveTab('retweets')}
               className={`flex-1 py-4 text-center transition-colors ${
                 activeTab === 'retweets'
-                  ? 'text-blue-600 border-b-2 border-blue-600 font-semibold'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-brand border-b-2 border-brand font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Retweets ({userStats.retweetsCount})
@@ -524,8 +524,8 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
               onClick={() => setActiveTab('comments')}
               className={`flex-1 py-4 text-center transition-colors ${
                 activeTab === 'comments'
-                  ? 'text-blue-600 border-b-2 border-blue-600 font-semibold'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-brand border-b-2 border-brand font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Comments ({userStats.commentsCount})
@@ -534,10 +534,10 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
         </div>
 
         {/* Tweet Feed */}
-        <div className="bg-gray-50 min-h-screen">
+        <div className="bg-background min-h-screen">
           {getDisplayTweets().length === 0 ? (
-            <div className="bg-white p-8 text-center">
-              <p className="text-gray-500">
+            <div className="bg-card p-8 text-center">
+              <p className="text-muted-foreground">
                 {activeTab === 'tweets' && 'No tweets yet'}
                 {activeTab === 'likes' && 'No liked tweets'}
                 {activeTab === 'retweets' && 'No retweets'}
@@ -547,7 +547,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
           ) : (
             <div className="space-y-0">
               {getDisplayTweets().map((tweet) => (
-                <div key={tweet.id} className="border-b border-gray-200 last:border-b-0">
+                <div key={tweet.id} className="border-b border-border last:border-b-0">
                   <TweetCard tweet={tweet} />
                 </div>
               ))}
