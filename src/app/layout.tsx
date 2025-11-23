@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   keywords: ['social', 'twitter', 'world id', 'minikit', 'blockchain', 'humanverse'],
   authors: [{ name: 'H World Team' }],
   viewport: 'width=device-width, initial-scale=1',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 interface RootLayoutProps {
