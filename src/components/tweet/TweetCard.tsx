@@ -139,8 +139,9 @@ export default function TweetCard({ tweet }: TweetCardProps) {
         {/* User Avatar */}
         <div className="flex-shrink-0">
           <div 
-            className="w-12 h-12 rounded-full bg-muted cursor-pointer overflow-hidden border-2 border-border" 
+            className="w-12 h-12 rounded-full cursor-pointer overflow-hidden border-2" 
             onClick={() => handleProfileClick(tweet.author.id)}
+            style={{ borderColor: '#A2A2A2' }}
           >
             {tweet.author.profilePictureUrl ? (
               <img
@@ -149,7 +150,14 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                 className="w-full h-full rounded-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-semibold text-lg">
+              <div 
+                className="w-full h-full flex items-center justify-center font-semibold text-lg rounded-full" 
+                style={{ 
+                  backgroundColor: '#000000', 
+                  color: '#FFFFFF',
+                  border: '2px solid #A2A2A2'
+                }}
+              >
                 {(tweet.author.displayName || tweet.author.username || 'U').charAt(0).toUpperCase()}
               </div>
             )}
@@ -274,7 +282,14 @@ export default function TweetCard({ tweet }: TweetCardProps) {
               {user && (
                 <form onSubmit={handleCommentSubmit} className="mb-4">
                   <div className="flex space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-muted-foreground overflow-hidden">
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold overflow-hidden"
+                      style={{
+                        backgroundColor: '#000000',
+                        color: '#FFFFFF',
+                        border: '2px solid #A2A2A2'
+                      }}
+                    >
                       {user.profilePictureUrl || user.avatar ? (
                         <img
                           src={user.profilePictureUrl || user.avatar}
@@ -321,7 +336,14 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                 <div className="space-y-3">
                   {comments.map((comment) => (
                     <div key={comment.id} className="flex space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-muted-foreground overflow-hidden">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold overflow-hidden"
+                        style={{
+                          backgroundColor: '#000000',
+                          color: '#FFFFFF',
+                          border: '2px solid #A2A2A2'
+                        }}
+                      >
                         {comment.author.profilePictureUrl || comment.author.avatar ? (
                           <img
                             src={comment.author.profilePictureUrl || comment.author.avatar}

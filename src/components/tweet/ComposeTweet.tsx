@@ -84,7 +84,7 @@ export default function ComposeTweet({
     <div className="bg-card border border-border rounded-lg p-4">
       <div className="flex space-x-3">
         {/* User Avatar */}
-        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-primary-foreground font-semibold overflow-hidden flex-shrink-0">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center font-semibold overflow-hidden flex-shrink-0">
           {user.profilePictureUrl || user.avatar ? (
             <img
               src={user.profilePictureUrl || user.avatar}
@@ -92,7 +92,14 @@ export default function ComposeTweet({
               className="w-full h-full rounded-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-semibold text-lg">
+            <div 
+              className="w-full h-full rounded-full flex items-center justify-center font-semibold text-lg"
+              style={{
+                backgroundColor: '#000000',
+                color: '#FFFFFF',
+                border: '2px solid #A2A2A2'
+              }}
+            >
               {(user.displayName || user.username || 'U').charAt(0).toUpperCase()}
             </div>
           )}

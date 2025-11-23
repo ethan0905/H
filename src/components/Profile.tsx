@@ -427,7 +427,14 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
           <div className="px-4 pb-4">
             {/* Avatar */}
             <div className="relative -mt-16 mb-4">
-              <div className="w-32 h-32 rounded-full border-4 border-background bg-muted flex items-center justify-center text-4xl font-bold text-muted-foreground overflow-hidden">
+              <div 
+                className="w-32 h-32 rounded-full border-4 border-background flex items-center justify-center text-4xl font-bold overflow-hidden"
+                style={{
+                  backgroundColor: profileUser.profilePictureUrl || profileUser.avatar ? 'transparent' : '#000000',
+                  color: '#FFFFFF',
+                  border: profileUser.profilePictureUrl || profileUser.avatar ? '4px solid hsl(var(--background))' : '4px solid #A2A2A2'
+                }}
+              >
                 {profileUser.profilePictureUrl || profileUser.avatar ? (
                   <img
                     src={profileUser.profilePictureUrl || profileUser.avatar}

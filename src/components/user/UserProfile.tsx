@@ -38,11 +38,24 @@ export function UserProfile({ profile, setProfile }: UserProfileProps) {
       {/* Profile */}
       <div className="p-6 pb-4 bg-background">
         <div className="flex items-end gap-4 -mt-16 mb-4">
-          <img
-            src={currentProfile.avatar || "/placeholder.svg"}
-            alt={username || currentProfile.displayName || currentProfile.username}
-            className="w-32 h-32 rounded-full border-4 border-background bg-card"
-          />
+          <div 
+            className="w-32 h-32 rounded-full border-4 flex items-center justify-center text-4xl font-bold overflow-hidden"
+            style={{
+              backgroundColor: currentProfile.avatar ? 'transparent' : '#000000',
+              color: '#FFFFFF',
+              border: currentProfile.avatar ? '4px solid hsl(var(--background))' : '4px solid #A2A2A2'
+            }}
+          >
+            {currentProfile.avatar ? (
+              <img
+                src={currentProfile.avatar}
+                alt={username || currentProfile.displayName || currentProfile.username}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              (username || currentProfile.displayName || currentProfile.username || 'U').charAt(0).toUpperCase()
+            )}
+          </div>
           {!isEditing && (
             <Button 
               onClick={() => setIsEditing(true)} 

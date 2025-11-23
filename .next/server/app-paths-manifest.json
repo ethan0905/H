@@ -1,4 +1,5 @@
 {
-  "/page": "app/page.js",
-  "/api/tweets/route": "app/api/tweets/route.js"
+  "/api/tweets/route": "app/api/tweets/route.js",
+  "/profile/[userId]/page": "app/profile/[userId]/page.js",
+  "/page": "app/page.js"
 }
