@@ -1,4 +1,4 @@
-# World Social - Twitter-like Mini App
+# H World - A human-verified social network designed to safeguard humans in the Intelligence Age.
 
 A modern, decentralized social media platform built for World App using minikit-js. This application features World ID verification, wallet authentication, and real-time social interactions in a mobile-first interface.
 
