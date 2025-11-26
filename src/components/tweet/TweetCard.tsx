@@ -134,12 +134,12 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   };
 
   return (
-    <div className="p-4 hover:bg-card transition cursor-pointer border-b border-border">
-      <div className="flex space-x-3">
+    <div className="p-3 sm:p-4 hover:bg-card transition cursor-pointer border-b border-border">
+      <div className="flex space-x-2 sm:space-x-3">
         {/* User Avatar */}
         <div className="flex-shrink-0">
           <div 
-            className="w-12 h-12 rounded-full cursor-pointer overflow-hidden border-2" 
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full cursor-pointer overflow-hidden border-2" 
             onClick={() => handleProfileClick(tweet.author.id)}
             style={{ borderColor: '#A2A2A2' }}
           >
@@ -167,10 +167,10 @@ export default function TweetCard({ tweet }: TweetCardProps) {
         {/* Tweet Content */}
         <div className="flex-1 min-w-0">
           {/* Header */}
-          <div className="flex items-center space-x-2 mb-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 mb-1 sm:mb-2">
             <button 
               onClick={() => handleProfileClick(tweet.author.id)}
-              className="font-semibold text-foreground truncate hover:underline text-left"
+              className="font-semibold text-sm sm:text-base text-foreground truncate hover:underline text-left"
             >
               {tweet.author.displayName || tweet.author.username}
             </button>
@@ -181,18 +181,18 @@ export default function TweetCard({ tweet }: TweetCardProps) {
             />
             <button 
               onClick={() => handleProfileClick(tweet.author.id)}
-              className="text-muted-foreground text-sm hover:underline"
+              className="text-muted-foreground text-xs sm:text-sm hover:underline"
             >
               @{tweet.author.username}
             </button>
-            <span className="text-muted-foreground text-sm">·</span>
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground text-xs sm:text-sm">·</span>
+            <span className="text-muted-foreground text-xs sm:text-sm">
               {formatTime(tweet.createdAt)}
             </span>
             <div className="ml-auto flex items-center space-x-1">
               <button
                 onClick={() => handleProfileClick(tweet.author.id)}
-                className="px-2 py-1 text-xs bg-muted hover:bg-accent rounded-full text-muted-foreground transition-colors"
+                className="hidden sm:block px-2 py-1 text-xs bg-muted hover:bg-accent rounded-full text-muted-foreground transition-colors"
               >
                 Profile
               </button>
@@ -200,14 +200,14 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                 onClick={() => setShowActions(!showActions)}
                 className="p-1 rounded-full hover:bg-muted text-muted-foreground"
               >
-                <MoreHorizontal size={16} />
+                <MoreHorizontal size={14} className="sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
 
           {/* Content */}
-          <div className="mb-3">
-            <p className="text-foreground whitespace-pre-wrap">
+          <div className="mb-2 sm:mb-3">
+            <p className="text-sm sm:text-base text-foreground whitespace-pre-wrap">
               {tweet.content}
             </p>
           </div>
@@ -236,42 +236,42 @@ export default function TweetCard({ tweet }: TweetCardProps) {
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-8 text-muted-foreground">
+          <div className="flex items-center space-x-4 sm:space-x-8 text-muted-foreground">
             <button
               onClick={handleToggleComments}
-              className={`flex items-center space-x-2 hover:text-accent transition-colors ${
+              className={`flex items-center space-x-1 sm:space-x-2 hover:text-accent transition-colors ${
                 showComments ? 'text-accent' : ''
               }`}
             >
-              <MessageCircle size={18} />
-              <span className="text-sm">{showComments ? comments.length : tweet.replies}</span>
+              <MessageCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="text-xs sm:text-sm">{showComments ? comments.length : tweet.replies}</span>
             </button>
 
             <button
               onClick={handleRetweet}
-              className={`flex items-center space-x-2 hover:text-green-500 transition-colors ${
+              className={`flex items-center space-x-1 sm:space-x-2 hover:text-green-500 transition-colors ${
                 tweet.isRetweeted ? 'text-green-500' : ''
               }`}
             >
-              <Repeat2 size={18} />
-              <span className="text-sm">{tweet.retweets}</span>
+              <Repeat2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="text-xs sm:text-sm">{tweet.retweets}</span>
             </button>
 
             <button
               onClick={handleLike}
-              className={`flex items-center space-x-2 hover:text-[#FF0000] transition-colors ${
+              className={`flex items-center space-x-1 sm:space-x-2 hover:text-[#FF0000] transition-colors ${
                 tweet.isLiked ? 'text-[#FF0000]' : ''
               }`}
             >
-              <Heart size={18} fill={tweet.isLiked ? 'currentColor' : 'none'} />
-              <span className="text-sm">{tweet.likes}</span>
+              <Heart size={16} className="sm:w-[18px] sm:h-[18px]" fill={tweet.isLiked ? 'currentColor' : 'none'} />
+              <span className="text-xs sm:text-sm">{tweet.likes}</span>
             </button>
 
             <button
               onClick={handleShare}
-              className="flex items-center space-x-2 hover:text-accent transition-colors"
+              className="flex items-center space-x-1 sm:space-x-2 hover:text-accent transition-colors"
             >
-              <Share size={18} />
+              <Share size={16} className="sm:w-[18px] sm:h-[18px]" />
             </button>
           </div>
 

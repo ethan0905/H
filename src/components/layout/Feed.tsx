@@ -36,10 +36,10 @@ export function Feed({ userId, profile }: FeedProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto border-l border-r border-border">
+    <div className="w-full sm:max-w-2xl sm:mx-auto sm:border-l sm:border-r border-border">
       {/* Header */}
-      <div className="sticky top-0 bg-background/80 backdrop-blur z-10 border-b border-border p-4">
-        <h2 className="text-xl font-bold text-foreground">Your Feed</h2>
+      <div className="sticky top-0 bg-background/95 backdrop-blur z-10 border-b border-border px-4 py-3 sm:p-4">
+        <h2 className="text-lg sm:text-xl font-bold text-foreground">Your Feed</h2>
       </div>
 
       {/* Compose Tweet */}

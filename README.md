@@ -1,6 +1,6 @@
 # H World - A human-verified social network designed to safeguard humans in the Intelligence Age.
 
-A modern, decentralized social media platform built for World App using minikit-js. This application features World ID verification, wallet authentication, and real-time social interactions in a mobile-first interface.
+A modern, decentralized social media platform built for World App using minikit-js. This mobile-first application features World ID verification, wallet authentication, and real-time social interactions optimized for mobile devices with a responsive desktop experience.
 
 ## Features
 
@@ -8,11 +8,13 @@ A modern, decentralized social media platform built for World App using minikit-
 - 💳 **Wallet Authentication** - Connect and authenticate with crypto wallets
 - 📝 **Tweet Creation** - Share thoughts with the world (280 character limit)
 - ❤️ **Social Interactions** - Like, retweet, and reply to posts
-- � **User Profiles** - Complete profile pages with user stats and tweet history
+- 👤 **User Profiles** - Complete profile pages with user stats and tweet history
 - ✅ **Verified Human Badges** - Visual indicators for World ID verified users
-- �📱 **Mobile-First Design** - Optimized for World App mobile experience
+- 📱 **Mobile-First Design** - Optimized for mobile with bottom navigation, touch-friendly UI, and responsive layouts
+- 🖥️ **Desktop Support** - Full desktop experience with sidebar navigation and multi-column layout
 - 🔒 **Privacy-Focused** - Built with privacy and security in mind
 - ⚡ **Real-time Updates** - Instant feed updates and notifications
+- 🎨 **Brand Identity** - Custom green (#00FFBE) brand color throughout the app
 
 ## Tech Stack
 

@@ -24,13 +24,13 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
   ]
 
   return (
-    <aside className="hidden sm:flex flex-col w-64 border-r border-border p-6 overflow-y-auto bg-background">
+    <aside className="hidden sm:flex flex-col w-16 md:w-64 border-r border-border p-3 md:p-6 overflow-y-auto bg-background">
       {/* Logo */}
-      <div className="mb-12">
-        <div className="text-3xl font-bold">
+      <div className="mb-8 md:mb-12">
+        <div className="text-3xl font-bold text-center md:text-left">
           <span className="text-brand">H</span>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">Humanverse</p>
+        <p className="hidden md:block text-sm text-muted-foreground mt-1">Humanverse</p>
       </div>
 
       {/* Navigation */}
@@ -39,14 +39,14 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
           <button
             key={item.id}
             onClick={() => onViewChange(item.id as View)}
-            className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
+            className={`w-full text-left px-2 md:px-4 py-3 rounded-lg transition-all flex items-center justify-center md:justify-start ${
               currentView === item.id
                 ? "bg-brand/20 text-brand border-2 border-brand"
                 : "text-muted-foreground hover:bg-brand/10 hover:text-brand hover:border-2 hover:border-brand border-2 border-transparent"
             }`}
           >
-            <span className="mr-3">{item.icon}</span>
-            {item.label}
+            <span className="text-xl md:mr-3">{item.icon}</span>
+            <span className="hidden md:inline">{item.label}</span>
           </button>
         ))}
       </nav>
@@ -54,14 +54,16 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
       {/* Compose Button */}
       <div className="space-y-3">
         <Button className="w-full bg-brand hover:bg-brand-600 text-black font-semibold rounded-lg py-3 transition-colors">
-          + Compose
+          <span className="md:hidden text-2xl">+</span>
+          <span className="hidden md:inline">+ Compose</span>
         </Button>
         <Button
           onClick={handleLogout}
           variant="outline"
           className="w-full border-border text-foreground hover:bg-card rounded-lg py-3 bg-transparent"
         >
-          Logout
+          <span className="md:hidden text-xl">🚪</span>
+          <span className="hidden md:inline">Logout</span>
         </Button>
       </div>
     </aside>

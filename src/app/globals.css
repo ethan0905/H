@@ -51,4 +51,32 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Mobile-first optimizations */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Improve touch targets on mobile */
+  button, a {
+    touch-action: manipulation;
+  }
+}
+
+/* Mobile specific scrolling */
+@media (max-width: 640px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Smooth scrolling for mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
 }

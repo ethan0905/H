@@ -417,18 +417,18 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
           </div>
       </header>
 
-      <main className="max-w-2xl mx-auto">
+      <main className="w-full sm:max-w-2xl sm:mx-auto">
         {/* Profile Info */}
         <div className="bg-card">
           {/* Cover Photo */}
-          <div className="h-48 bg-gradient-to-r from-brand-900 to-brand-700"></div>
+          <div className="h-32 sm:h-48 bg-gradient-to-r from-brand-900 to-brand-700"></div>
           
           {/* Profile Details */}
-          <div className="px-4 pb-4">
+          <div className="px-3 sm:px-4 pb-4">
             {/* Avatar */}
-            <div className="relative -mt-16 mb-4">
+            <div className="relative -mt-12 sm:-mt-16 mb-3 sm:mb-4">
               <div 
-                className="w-32 h-32 rounded-full border-4 border-background flex items-center justify-center text-4xl font-bold overflow-hidden"
+                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-background flex items-center justify-center text-3xl sm:text-4xl font-bold overflow-hidden"
                 style={{
                   backgroundColor: profileUser.profilePictureUrl || profileUser.avatar ? 'transparent' : '#000000',
                   color: '#FFFFFF',
@@ -448,9 +448,9 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
             </div>
 
             {/* Name and Verification */}
-            <div className="mb-4">
+            <div className="mb-3 sm:mb-4">
               <div className="flex items-center space-x-2 mb-1">
-                <h1 className="text-2xl font-bold text-foreground">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">
                   {profileUser.displayName || profileUser.username}
                 </h1>
                 <VerifiedBadge 
@@ -459,13 +459,13 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
                   size="md"
                 />
               </div>
-              <p className="text-muted-foreground">@{profileUser.username}</p>
+              <p className="text-sm sm:text-base text-muted-foreground">@{profileUser.username}</p>
             </div>
 
             {/* Bio */}
             {profileUser.bio && (
-              <div className="mb-4">
-                <p className="text-foreground">{profileUser.bio}</p>
+              <div className="mb-3 sm:mb-4">
+                <p className="text-sm sm:text-base text-foreground">{profileUser.bio}</p>
               </div>
             )}
 
