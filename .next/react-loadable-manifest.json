@@ -12,5 +12,11 @@
   "../node_modules/viem/_esm/utils/signature/recoverPublicKey.js -> @noble/curves/secp256k1": {
     "id": "../node_modules/viem/_esm/utils/signature/recoverPublicKey.js -> @noble/curves/secp256k1",
     "files": []
+  },
+  "components/ErudaDebugger.tsx -> eruda": {
+    "id": "components/ErudaDebugger.tsx -> eruda",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_eruda_eruda_js.js"
+    ]
   }
 }

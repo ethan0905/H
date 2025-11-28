@@ -1,0 +1,17 @@
+{
+  "name": "H World - Social Network for Humans",
+  "short_name": "H World",
+  "description": "A human-verified social network designed to safeguard humans in the Intelligence Age",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00FFBE",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

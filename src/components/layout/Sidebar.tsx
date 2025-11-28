@@ -1,5 +1,5 @@
 "use client"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { useUserStore } from '@/store/userStore'
 
 type View = "feed" | "profile" | "explore" | "messages"

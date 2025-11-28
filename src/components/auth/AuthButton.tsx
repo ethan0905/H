@@ -12,6 +12,8 @@ interface AuthButtonProps {
 export default function AuthButton({ className = '' }: AuthButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
   const { setUser, setWorldIdVerification, setError } = useUserStore();
 
   const handleWorldIDVerification = useCallback(async (proof: ISuccessResult) => {
@@ -54,6 +56,7 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
       console.log('Success response:', JSON.stringify(result, null, 2));
       
       // Set the World ID verification
+      console.log('5. SETTING WORLD ID VERIFICATION IN STORE...');
       setWorldIdVerification({
         verified: true,
         verification_level: proof.verification_level as 'orb' | 'device',
@@ -61,6 +64,7 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
       });
 
       // Create a user account or login
+      console.log('6. CREATING USER OBJECT...');
       const mockUser = {
         id: proof.nullifier_hash,
         username: `human_${proof.nullifier_hash.slice(-8)}`,
@@ -73,10 +77,28 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
         updatedAt: new Date(),
       };
 
+      console.log('7. SETTING USER IN STORE...');
+      console.log('User object:', mockUser);
       setUser(mockUser);
+      
+      console.log('✅ VERIFICATION COMPLETE! User should be logged in now.');
+      console.log('8. CHECKING STORE STATE...');
+      
+      // Show success message
+      setSuccessMessage('✅ World ID verified! Logging you in...');
+      
+      // The store should trigger a re-render of the page component
+      // Wait a brief moment for the success message to be visible
+      setTimeout(() => {
+        console.log('9. REDIRECTING TO MAIN APP...');
+      }, 1000);
       
     } catch (error) {
       console.error('World ID verification error:', error);
+      setSuccessMessage(null);
+      const errorMessage = error instanceof Error ? error.message : 'Verification failed';
+      setLocalError(errorMessage);
+      setError(errorMessage);
       
       // Temporary development mode fallback for testing
       if (process.env.NODE_ENV === 'development' && error instanceof Error && error.message.includes('invalid_format')) {
@@ -174,35 +196,64 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
   }, [setUser, setError]);
 
   const handleVerifyClick = async () => {
+    console.log('🌍 World ID Verify button clicked');
+    console.log('📱 MiniKit installed:', MiniKit.isInstalled());
+    
+    // Clear previous errors
+    setLocalError(null);
+    setError(null);
+    setSuccessMessage(null);
+    
     if (!MiniKit.isInstalled()) {
-      setError('Please open this app in World App');
+      console.log('❌ MiniKit not installed, showing QR instead');
+      setShowQR(true);
       return;
     }
 
     setIsLoading(true);
-    setError(null);
 
     try {
-      const actionId = process.env.NEXT_PUBLIC_WORLD_ID_ACTION || 'sign-in';
+      const actionId = process.env.NEXT_PUBLIC_WORLD_ID_ACTION || 'verify-human';
+      console.log('🎯 Action ID:', actionId);
+      console.log('🔐 Verification Level:', VerificationLevel.Orb);
 
+      console.log('📞 Calling MiniKit.commandsAsync.verify...');
+      
       // Trigger World ID verification using async API
       const response = await MiniKit.commandsAsync.verify({
         action: actionId,
-        verification_level: VerificationLevel.Orb,
+        verification_level: VerificationLevel.Device, // Use Device for broader compatibility
+      });
+
+      console.log('📦 MiniKit response received:', response);
+      console.log('📦 Response structure:', {
+        hasFinalPayload: !!response.finalPayload,
+        status: response.finalPayload?.status,
+        keys: response.finalPayload ? Object.keys(response.finalPayload) : []
       });
 
       if (response.finalPayload.status === 'success') {
-        console.log('World ID verification successful!', response.finalPayload);
-        handleWorldIDVerification(response.finalPayload);
+        console.log('✅ World ID verification successful!', response.finalPayload);
+        await handleWorldIDVerification(response.finalPayload);
       } else {
-        console.error('World ID verification failed:', response.finalPayload);
-        setError('World ID verification failed');
+        console.error('❌ World ID verification failed:', response.finalPayload);
+        const errorMsg = response.finalPayload.error_code || 'World ID verification was cancelled or failed';
+        setLocalError(errorMsg);
+        setError(errorMsg);
       }
     } catch (error: any) {
-      console.error('World ID verification error:', error);
-      setError('World ID verification failed');
+      console.error('❌ World ID verification error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      const errorMsg = error.message || 'World ID verification failed';
+      setLocalError(errorMsg);
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
+      console.log('✅ Verification process completed');
     }
   };
 
@@ -233,23 +284,51 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* MiniKit World ID (only works in World App) */}
-      {MiniKit.isInstalled() ? (
-        <button
-          onClick={handleVerifyClick}
-          disabled={isLoading}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed py-3 px-4 rounded-lg font-medium transition-colors"
-        >
-          {isLoading ? 'Verifying...' : '🌍 Verify with World ID (MiniKit)'}
-        </button>
-      ) : (
-        <button
-          onClick={() => setShowQR(true)}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 px-4 rounded-lg font-medium transition-colors"
-        >
-          🌍 Verify with World ID
-        </button>
+      {/* Error Message */}
+      {localError && (
+        <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg text-center">
+          <p className="text-sm font-medium">❌ {localError}</p>
+          <button 
+            onClick={() => setLocalError(null)}
+            className="text-xs text-red-300 hover:text-red-200 mt-1 underline"
+          >
+            Dismiss
+          </button>
+        </div>
       )}
+      
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-500/20 border border-green-500 text-green-400 px-4 py-3 rounded-lg text-center animate-pulse">
+          {successMessage}
+        </div>
+      )}
+      
+      {/* World ID Verification Button */}
+      <button
+        onClick={handleVerifyClick}
+        disabled={isLoading || !!successMessage}
+        style={{
+          backgroundColor: '#00FFBE',
+          color: '#000000',
+          width: '100%',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          fontWeight: '600',
+          border: 'none',
+          cursor: isLoading || successMessage ? 'not-allowed' : 'pointer',
+          opacity: isLoading || successMessage ? 0.5 : 1,
+          transition: 'all 0.2s',
+        }}
+        onMouseOver={(e) => {
+          if (!isLoading && !successMessage) e.currentTarget.style.backgroundColor = '#00E6AA';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.backgroundColor = '#00FFBE';
+        }}
+      >
+        {successMessage ? '✅ Verified!' : isLoading ? '⏳ Verifying...' : MiniKit.isInstalled() ? '🌍 Verify with World ID' : '🌍 Verify with World ID (QR)'}
+      </button>
       
       {/* Divider */}
       <div className="flex items-center">

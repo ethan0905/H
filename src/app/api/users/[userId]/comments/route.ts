@@ -47,7 +47,8 @@ export async function GET(
     });
 
     // Get unique tweets (in case user commented multiple times on same tweet)
-    const uniqueTweetIds = [...new Set(comments.map(comment => comment.tweetId))];
+    const tweetIdsSet = new Set(comments.map(comment => comment.tweetId));
+    const uniqueTweetIds = Array.from(tweetIdsSet);
     const tweets = await prisma.tweet.findMany({
       where: {
         id: { in: uniqueTweetIds },

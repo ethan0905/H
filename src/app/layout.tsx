@@ -4,6 +4,7 @@ import MiniKitProvider from '@/components/providers/MiniKitProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import Toaster from '@/components/ui/Toaster';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import ErudaDebugger from '@/components/ErudaDebugger';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -24,6 +25,12 @@ export const metadata: Metadata = {
     apple: '/favicon.ico',
   },
   themeColor: '#00FFBE',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'H World',
+  },
+  manifest: '/manifest.json',
 };
 
 interface RootLayoutProps {
@@ -34,14 +41,18 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="H World" />
       </head>
       <body className={inter.className}>
+        <ErudaDebugger />
         <ErrorBoundary>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="dark"
+            enableSystem={false}
             disableTransitionOnChange
           >
             <MiniKitProvider>

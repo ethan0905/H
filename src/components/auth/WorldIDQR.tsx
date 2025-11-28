@@ -116,13 +116,19 @@ export default function WorldIDQR({ action, app_id, onSuccess, onError }: WorldI
 
   if (status === 'confirmed') {
     return (
-      <div className="bg-card p-6 rounded-2xl shadow-lg border border-border text-center">
-        <div className="text-6xl mb-4">✅</div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">
+      <div className="bg-card p-6 rounded-2xl shadow-lg border border-border text-center animate-pulse">
+        <div className="text-6xl mb-4 animate-bounce">✅</div>
+        <h3 className="text-lg font-semibold text-brand mb-2">
           Verification Successful!
         </h3>
-        <p className="text-sm text-muted-foreground">
-          Your World ID has been verified. Redirecting...
+        <p className="text-sm text-muted-foreground mb-4">
+          Your World ID has been verified successfully.
+        </p>
+        <div className="w-full bg-brand/20 h-2 rounded-full overflow-hidden">
+          <div className="h-full bg-brand animate-pulse"></div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Logging you in...
         </p>
       </div>
     );

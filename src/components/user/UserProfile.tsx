@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { useUserStore } from '@/store/userStore';
 
 interface UserProfileProps {

@@ -1,9 +1,8 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
   "/api/tweets/route": "app/api/tweets/route.js",
-  "/profile/[userId]/page": "app/profile/[userId]/page.js",
   "/api/users/route": "app/api/users/route.js",
-  "/api/tweets/[tweetId]/comments/route": "app/api/tweets/[tweetId]/comments/route.js",
-  "/api/users/[userId]/tweets/route": "app/api/users/[userId]/tweets/route.js"
+  "/api/users/[userId]/tweets/route": "app/api/users/[userId]/tweets/route.js",
+  "/api/verify-world-id/route": "app/api/verify-world-id/route.js",
+  "/profile/[userId]/page": "app/profile/[userId]/page.js"
 }
