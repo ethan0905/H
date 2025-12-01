@@ -24,6 +24,20 @@ model User {
   verificationLevel     String?   // 'orb' or 'device'
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  
+  // Gamification fields
+  currentRank           String    @default("HUMAN_VERIFIED") // HUMAN_VERIFIED, HUMAN_EXPLORER, HUMAN_PIONEER, HUMAN_ELITE, HUMAN_LEGEND, HUMAN_INFINITY
+  rankScore             Int       @default(0)
+  streakDays            Int       @default(0)
+  lastActiveAt          DateTime?
+  contributionScore     Int       @default(0)
+  engagementScore       Int       @default(0)
+  invitesCount          Int       @default(0)
+  successfulInvitesCount Int      @default(0)
+  totalEarnings         Float     @default(0.0) // For Top Earners leaderboard
+  country               String?
+  city                  String?
+  language              String?   @default("en")
 
   // Relations
   tweets                Tweet[]
@@ -32,6 +46,13 @@ model User {
   followers             Follow[] @relation("UserFollowers")
   following             Follow[] @relation("UserFollowing")
   comments              Comment[]
+  tags                  UserTag[]
+  infinityVotesReceived HumanInfinityVote[] @relation("InfinityVotesReceived")
+  infinityVotesGiven    HumanInfinityVote[] @relation("InfinityVotesGiven")
+  invitedBy             User?     @relation("UserInvites", fields: [invitedById], references: [id])
+  invitedById           String?
+  invitedUsers          User[]    @relation("UserInvites")
+  leaderboardEntries    LeaderboardEntry[]
 
   @@map("users")
 }
@@ -123,4 +144,106 @@ model Comment {
   tweet                 Tweet     @relation(fields: [tweetId], references: [id], onDelete: Cascade)
 
   @@map("comments")
+}
+
+// Gamification Models
+
+model Season {
+  id                    String    @id @default(cuid())
+  name                  String    @unique
+  theme                 String
+  startAt               DateTime
+  endAt                 DateTime
+  isActive              Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  tags                  Tag[]
+
+  @@map("seasons")
+}
+
+model Tag {
+  id                    String    @id @default(cuid())
+  name                  String    @unique
+  description           String?
+  seasonId              String?
+  isLimited             Boolean   @default(false)
+  maxSupply             Int?      // null means unlimited
+  currentSupply         Int       @default(0)
+  metadata              String?   // JSON string for additional data
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  season                Season?   @relation(fields: [seasonId], references: [id])
+  userTags              UserTag[]
+
+  @@map("tags")
+}
+
+model UserTag {
+  id                    String    @id @default(cuid())
+  userId                String
+  tagId                 String
+  grantedAt             DateTime  @default(now())
+  reason                String?
+
+  // Relations
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tag                   Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tagId])
+  @@map("user_tags")
+}
+
+model HumanInfinityVote {
+  id                    String    @id @default(cuid())
+  voterId               String    // User who gives the vote
+  candidateId           String    // User who receives the vote
+  reason                String?
+  createdAt             DateTime  @default(now())
+
+  // Relations
+  voter                 User      @relation("InfinityVotesGiven", fields: [voterId], references: [id], onDelete: Cascade)
+  candidate             User      @relation("InfinityVotesReceived", fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([voterId, candidateId])
+  @@map("human_infinity_votes")
+}
+
+model LeaderboardSnapshot {
+  id                    String    @id @default(cuid())
+  type                  String    // GLOBAL_TOP_HUMANS, GLOBAL_TOP_CREATORS, REGIONAL_TOP_CREATORS, etc.
+  periodStart           DateTime
+  periodEnd             DateTime
+  region                String?   // country, city, language, or community identifier
+  regionType            String?   // 'country', 'city', 'language', 'community'
+  createdAt             DateTime  @default(now())
+
+  // Relations
+  entries               LeaderboardEntry[]
+
+  @@index([type, periodEnd])
+  @@index([type, region, periodEnd])
+  @@map("leaderboard_snapshots")
+}
+
+model LeaderboardEntry {
+  id                    String    @id @default(cuid())
+  snapshotId            String
+  userId                String
+  rankPosition          Int
+  score                 Float
+  metadata              String?   // JSON string for score breakdown
+  createdAt             DateTime  @default(now())
+
+  // Relations
+  snapshot              LeaderboardSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([snapshotId, userId])
+  @@index([snapshotId, rankPosition])
+  @@map("leaderboard_entries")
 }

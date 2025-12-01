@@ -7,6 +7,9 @@ import { useUserStore } from '@/store/userStore';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
 import TweetCard from '@/components/tweet/TweetCard';
 import EditProfileModal from '@/components/EditProfileModal';
+import { RankBadge } from '@/components/gamification/RankBadge';
+import { RankProgress } from '@/components/gamification/RankProgress';
+import { TagsDisplay } from '@/components/gamification/TagsDisplay';
 
 interface ProfileProps {
   userId: string;
@@ -20,6 +23,33 @@ interface UserStats {
   followersCount: number;
   followingCount: number;
   commentsCount: number;
+}
+
+interface GamificationData {
+  rank: {
+    current: string;
+    currentDisplayName: string;
+    score: number;
+    progress?: {
+      currentRank: string;
+      nextRank: string | null;
+      currentScore: number;
+      requiredScore: number;
+      progressPercentage: number;
+    };
+  };
+  tags: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    isLimited: boolean;
+    grantedAt: string;
+  }>;
+  stats: {
+    streakDays: number;
+    contributionScore: number;
+    engagementScore: number;
+  };
 }
 
 export default function Profile({ userId, user: initialUser }: ProfileProps) {
@@ -37,6 +67,8 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
     followingCount: 0,
     commentsCount: 0
   });
+  const [gamificationData, setGamificationData] = useState<GamificationData | null>(null);
+  const [gamificationLoading, setGamificationLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'tweets' | 'likes' | 'retweets' | 'comments'>('tweets');
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -202,6 +234,30 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
 
     fetchFreshStats();
   }, [userId, currentUser]);
+
+  // Fetch gamification data
+  useEffect(() => {
+    const fetchGamificationData = async () => {
+      if (!userId) return;
+      
+      setGamificationLoading(true);
+      try {
+        const response = await fetch(`/api/gamification/user/${encodeURIComponent(userId)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setGamificationData(data);
+        } else {
+          console.log('No gamification data available for user');
+        }
+      } catch (error) {
+        console.error('Error fetching gamification data:', error);
+      } finally {
+        setGamificationLoading(false);
+      }
+    };
+
+    fetchGamificationData();
+  }, [userId]);
 
   // Get liked tweets
   const [likedTweets, setLikedTweets] = useState<Tweet[]>([]);
@@ -466,6 +522,48 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
             {profileUser.bio && (
               <div className="mb-3 sm:mb-4">
                 <p className="text-sm sm:text-base text-foreground">{profileUser.bio}</p>
+              </div>
+            )}
+
+            {/* Gamification Section */}
+            {!gamificationLoading && gamificationData && (
+              <div className="mb-4 space-y-3">
+                {/* Rank Badge */}
+                <div className="flex items-center space-x-2">
+                  <RankBadge 
+                    rank={gamificationData.rank.current as any}
+                    size="md"
+                    showLabel={true}
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm text-muted-foreground">
+                      🔥 {gamificationData.stats.streakDays} day streak
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                {gamificationData.rank.progress && (
+                  <div className="space-y-1">
+                    <RankProgress 
+                      currentRank={gamificationData.rank.progress.currentRank as any}
+                      nextRank={gamificationData.rank.progress.nextRank as any}
+                      progressToNext={gamificationData.rank.progress.progressPercentage / 100}
+                      rankScore={gamificationData.rank.score}
+                    />
+                  </div>
+                )}
+
+                {/* Tags Display */}
+                {gamificationData.tags.length > 0 && (
+                  <TagsDisplay 
+                    tags={gamificationData.tags.map(tag => ({
+                      ...tag,
+                      description: tag.description || undefined
+                    }))}
+                    maxDisplay={5}
+                  />
+                )}
               </div>
             )}
 

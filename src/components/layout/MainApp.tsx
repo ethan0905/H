@@ -4,12 +4,16 @@ import { useState, useEffect } from "react"
 import { Feed } from "@/components/layout/Feed"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { UserProfile } from "@/components/user/UserProfile"
+import dynamic from 'next/dynamic'
+
+// Dynamically import the leaderboards page component
+const LeaderboardsView = dynamic(() => import('@/app/leaderboards/page'), { ssr: false })
 
 interface MainAppProps {
   userId: string | null
 }
 
-type View = "feed" | "profile" | "explore" | "messages"
+type View = "feed" | "profile" | "explore" | "messages" | "leaderboards"
 
 export function MainApp({ userId }: MainAppProps) {
   const [currentView, setCurrentView] = useState<View>("feed")
@@ -32,6 +36,7 @@ export function MainApp({ userId }: MainAppProps) {
         {currentView === "feed" && <Feed userId={userId} profile={userProfile} />}
         {currentView === "profile" && <UserProfile profile={userProfile} setProfile={setUserProfile} />}
         {currentView === "explore" && <ExploreView />}
+        {currentView === "leaderboards" && <LeaderboardsView />}
       </main>
 
       {/* Right Sidebar - Trending (Desktop only) */}
@@ -84,7 +89,7 @@ function MobileBottomNav({ currentView, onViewChange }: { currentView: View; onV
   const navItems = [
     { id: "feed", label: "Feed", icon: "📰" },
     { id: "explore", label: "Explore", icon: "🔍" },
-    { id: "messages", label: "Messages", icon: "💬" },
+    { id: "leaderboards", label: "Ranks", icon: "🏆" },
     { id: "profile", label: "Profile", icon: "👤" },
   ]
 

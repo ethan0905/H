@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button"
 import { useUserStore } from '@/store/userStore'
 
-type View = "feed" | "profile" | "explore" | "messages"
+type View = "feed" | "profile" | "explore" | "messages" | "leaderboards"
 
 interface SidebarProps {
   currentView: View
@@ -19,6 +19,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
   const navItems = [
     { id: "feed", label: "Feed", icon: "📰" },
     { id: "explore", label: "Explore", icon: "🔍" },
+    { id: "leaderboards", label: "Leaderboards", icon: "🏆" },
     { id: "messages", label: "Messages", icon: "💬" },
     { id: "profile", label: "Profile", icon: "👤" },
   ]

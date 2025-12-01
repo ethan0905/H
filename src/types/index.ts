@@ -11,6 +11,12 @@ export interface User {
   verified?: boolean; // Alternative field name for compatibility
   createdAt?: Date;
   updatedAt?: Date;
+  // Gamification fields
+  currentRank?: string;
+  rankScore?: number;
+  country?: string;
+  city?: string;
+  language?: string;
 }
 
 export interface Tweet {

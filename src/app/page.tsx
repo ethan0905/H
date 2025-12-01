@@ -9,7 +9,19 @@ export default function HomePage() {
   const [isClient, setIsClient] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hydrationTimeout, setHydrationTimeout] = useState(false);
+  const [guestMode, setGuestMode] = useState(false);
   const { user, isAuthenticated, worldIdVerification, _hasHydrated, setHasHydrated } = useUserStore();
+
+  // Check for guest mode in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('guest') === 'true' && process.env.NODE_ENV === 'development') {
+        console.log('🔓 Guest mode enabled');
+        setGuestMode(true);
+      }
+    }
+  }, []);
 
   // Log whenever auth state changes
   useEffect(() => {
@@ -39,14 +51,14 @@ export default function HomePage() {
       setIsClient(true);
       console.log('✅ App mounted successfully');
 
-      // Fallback: Force hydration after 2 seconds if it hasn't happened
+      // Fallback: Force hydration after 1 second if it hasn't happened (reduced from 2s)
       const hydrationTimer = setTimeout(() => {
         if (!_hasHydrated) {
           console.warn('⚠️  Hydration timeout - forcing hydration complete');
           setHasHydrated(true);
           setHydrationTimeout(true);
         }
-      }, 2000);
+      }, 1000);
 
       return () => clearTimeout(hydrationTimer);
     } catch (err) {
@@ -180,6 +192,33 @@ export default function HomePage() {
             </div>
             
             <AuthButton />
+
+            {/* Development Mode: Browse as Guest */}
+            {process.env.NODE_ENV === 'development' && (
+              <>
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">Or</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    console.log('🔓 Browsing as guest (dev mode)');
+                    // Render MainApp without authentication
+                    window.location.href = '/?guest=true';
+                  }}
+                  className="w-full py-3 px-4 border-2 border-border rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  Continue as Guest (Dev Mode)
+                </button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Browse seeded data without authentication
+                </p>
+              </>
+            )}
             
             <div className="mt-6 text-xs text-muted-foreground">
               <p>
@@ -203,6 +242,21 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Allow guest mode in development
+  if (guestMode && process.env.NODE_ENV === 'development') {
+    console.log('✅ GUEST MODE - Rendering MainApp without auth');
+    return (
+      <div>
+        <div className="bg-yellow-500/10 border-b border-yellow-500/20 p-2 text-center">
+          <p className="text-xs text-yellow-600 dark:text-yellow-400">
+            🔓 Guest Mode (Development) - Browsing seeded data without authentication
+          </p>
+        </div>
+        <MainApp userId={null} />
       </div>
     );
   }
