@@ -25,6 +25,12 @@
       "static/chunks/_app-pages-browser_src_app_leaderboards_page_tsx.js"
     ]
   },
+  "components/layout/MainApp.tsx -> @/lib/wld-balance": {
+    "id": "components/layout/MainApp.tsx -> @/lib/wld-balance",
+    "files": [
+      "static/chunks/_app-pages-browser_src_lib_wld-balance_ts.js"
+    ]
+  },
   "components/layout/MainApp.tsx -> @/lib/worldpay": {
     "id": "components/layout/MainApp.tsx -> @/lib/worldpay",
     "files": [

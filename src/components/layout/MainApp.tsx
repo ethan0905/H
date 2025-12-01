@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Feed } from "@/components/layout/Feed"
 import { Sidebar } from "@/components/layout/Sidebar"
-import { UserProfile } from "@/components/user/UserProfile"
 import { NavigationBar } from "@/components/ui/NavigationBar"
 import { useUserStore } from "@/store/userStore"
 import { useTweetStore } from "@/store/tweetStore"
@@ -35,6 +34,11 @@ export function MainApp({ userId }: MainAppProps) {
   }, [])
 
   const handleNavigate = (view: View) => {
+    // If navigating to profile, redirect to the user's profile page instead
+    if (view === "profile" && user?.id) {
+      router.push(`/profile/${encodeURIComponent(user.id)}`)
+      return
+    }
     setCurrentView(view)
   }
 
@@ -46,7 +50,7 @@ export function MainApp({ userId }: MainAppProps) {
       {/* Main Content - Full width on mobile, adjusted on desktop */}
       <main className="flex-1 overflow-y-auto sm:border-l sm:border-r border-gray-800 pb-16 sm:pb-0">
         {currentView === "home" && <Feed key={refreshKey} userId={userId} profile={userProfile} />}
-        {currentView === "profile" && <UserProfile profile={userProfile} setProfile={setUserProfile} />}
+        {/* Profile view redirects to /profile/[userId] route - no inline component */}
         {currentView === "communities" && <CommunitiesView />}
         {currentView === "create" && <CreateView onPostCreated={() => {
           setCurrentView("home")
@@ -826,6 +830,8 @@ function EarningsView() {
   const { user } = useUserStore()
   const [isUpgrading, setIsUpgrading] = useState(false)
   const [subscriptionStatus, setSubscriptionStatus] = useState<'free' | 'pro'>('free')
+  const [wldBalance, setWldBalance] = useState<{ balance: string; balanceUSD: string } | null>(null)
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false)
   
   // Load earnings from localStorage
   const storedEarnings = JSON.parse(localStorage.getItem('user_earnings') || '{"total": 0, "last7Days": []}')
@@ -865,6 +871,43 @@ function EarningsView() {
     }
     checkSubscription()
   }, [user])
+
+  // Fetch WLD balance when user wallet is connected
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!user?.walletAddress || user.walletAddress === 'Not connected') {
+        setWldBalance(null)
+        return
+      }
+
+      setIsLoadingBalance(true)
+      try {
+        const { fetchWLDBalance } = await import('@/lib/wld-balance')
+        const result = await fetchWLDBalance(user.walletAddress)
+        
+        if (result.success && result.balance && result.balanceUSD) {
+          setWldBalance({
+            balance: result.balance,
+            balanceUSD: result.balanceUSD,
+          })
+        } else {
+          console.error('Failed to fetch WLD balance:', result.error)
+          setWldBalance(null)
+        }
+      } catch (error) {
+        console.error('Error fetching WLD balance:', error)
+        setWldBalance(null)
+      } finally {
+        setIsLoadingBalance(false)
+      }
+    }
+
+    fetchBalance()
+    
+    // Refresh balance every 30 seconds
+    const interval = setInterval(fetchBalance, 30000)
+    return () => clearInterval(interval)
+  }, [user?.walletAddress])
 
   const handleUpgradeToPro = async () => {
     if (!user || isUpgrading) return
@@ -1064,22 +1107,105 @@ function EarningsView() {
       <div className="px-4 mb-6">
         <div className="border rounded-2xl p-6" style={{ backgroundColor: "#00FFBD20", borderColor: "#00FFBD80" }}>
           <div className="flex items-center justify-between mb-4">
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="text-sm font-bold mb-1">Connected Wallet</h3>
-              <p className="text-xs text-gray-500 font-mono">Not connected</p>
+              {user?.walletAddress ? (
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-gray-300 font-mono truncate">
+                    {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (user?.walletAddress) {
+                        navigator.clipboard.writeText(user.walletAddress)
+                        // Show a brief success indicator
+                        const btn = document.activeElement as HTMLButtonElement
+                        if (btn) {
+                          const originalText = btn.textContent
+                          btn.textContent = '✓'
+                          setTimeout(() => {
+                            btn.textContent = originalText
+                          }, 1500)
+                        }
+                      }
+                    }}
+                    className="text-xs px-2 py-0.5 rounded hover:bg-black/20 transition-colors"
+                    title="Copy full address"
+                  >
+                    📋
+                  </button>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500 font-mono">Not connected</p>
+              )}
             </div>
             <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
+              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ml-2"
               style={{ backgroundColor: "#00FFBD20" }}
             >
               <DollarSign className="w-5 h-5" style={{ color: "#00FFBD" }} />
             </div>
           </div>
+
+          {/* WLD Balance Section */}
+          {user?.walletAddress && (
+            <div className="mb-4 p-4 bg-black/40 rounded-xl border border-gray-800">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500 mb-1">$WLD Balance</p>
+                  {isLoadingBalance ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-gray-600 border-t-[#00FFBD] rounded-full animate-spin"></div>
+                      <p className="text-sm text-gray-400">Loading...</p>
+                    </div>
+                  ) : wldBalance ? (
+                    <>
+                      <p className="text-lg font-bold" style={{ color: "#00FFBD" }}>
+                        {wldBalance.balance} WLD
+                      </p>
+                      <p className="text-xs text-gray-500">≈ ${wldBalance.balanceUSD}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg font-bold text-gray-500">0.0000 WLD</p>
+                      <p className="text-xs text-gray-500">≈ $0.00</p>
+                    </>
+                  )}
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!user?.walletAddress) return
+                    setIsLoadingBalance(true)
+                    try {
+                      const { fetchWLDBalance } = await import('@/lib/wld-balance')
+                      const result = await fetchWLDBalance(user.walletAddress)
+                      if (result.success && result.balance && result.balanceUSD) {
+                        setWldBalance({
+                          balance: result.balance,
+                          balanceUSD: result.balanceUSD,
+                        })
+                      }
+                    } catch (error) {
+                      console.error('Error refreshing balance:', error)
+                    } finally {
+                      setIsLoadingBalance(false)
+                    }
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-gray-700 hover:border-[#00FFBD]/50 transition-colors"
+                  disabled={isLoadingBalance}
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+          )}
+
           <button
             className="w-full text-black font-bold rounded-full py-4"
             style={{ backgroundColor: "#00FFBD" }}
+            disabled={!user?.walletAddress}
           >
-            Connect Wallet to Withdraw
+            {user?.walletAddress ? 'Withdraw Earnings' : 'Connect Wallet to Withdraw'}
           </button>
         </div>
       </div>
