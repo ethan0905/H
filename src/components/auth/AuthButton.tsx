@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { MiniKit, VerificationLevel, ISuccessResult } from '@worldcoin/minikit-js';
 import { useUserStore } from '@/store/userStore';
+import { authenticateWithWallet } from '@/lib/worldAuth';
 import WorldIDQR from './WorldIDQR';
 
 interface AuthButtonProps {
@@ -14,7 +15,67 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
   const [showQR, setShowQR] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [autoAuthAttempted, setAutoAuthAttempted] = useState(false);
   const { setUser, setWorldIdVerification, setError } = useUserStore();
+
+  // Auto-authenticate with wallet when component mounts (in World App)
+  useEffect(() => {
+    const autoAuth = async () => {
+      if (autoAuthAttempted) return;
+      
+      // Only auto-auth if in World App
+      if (!MiniKit.isInstalled()) {
+        console.log('📱 Not in World App - manual auth required');
+        return;
+      }
+
+      setAutoAuthAttempted(true);
+      console.log('🔐 Auto-authenticating with Worldcoin wallet...');
+      
+      try {
+        setIsLoading(true);
+        setLocalError(null);
+        
+        const result = await authenticateWithWallet();
+        
+        if (result.success && result.user) {
+          console.log('✅ Auto-auth successful:', result.user);
+          
+          // Check if user is Orb verified
+          if (result.user.verificationLevel !== 'orb') {
+            setLocalError('⚠️ Orb verification required. You must be verified with a World ID Orb to access H World. Please visit a World ID Orb location to get verified.');
+            setIsLoading(false);
+            return;
+          }
+          
+          // Set user in store
+          setUser(result.user);
+          setWorldIdVerification({
+            verified: true,
+            verification_level: result.user.verificationLevel,
+            nullifier_hash: result.user.nullifierHash,
+          });
+          
+          setSuccessMessage('✅ Authenticated! Welcome to H World');
+          
+          // Wait a moment before clearing loading state
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 500);
+        } else {
+          console.log('❌ Auto-auth failed:', result.error);
+          setLocalError(result.error || 'Authentication failed. Please try again.');
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ Auto-auth error:', error);
+        setLocalError(error instanceof Error ? error.message : 'Authentication failed. Please try again.');
+        setIsLoading(false);
+      }
+    };
+
+    autoAuth();
+  }, [autoAuthAttempted, setUser, setWorldIdVerification]);
 
   const handleWorldIDVerification = useCallback(async (proof: ISuccessResult) => {
     try {
@@ -282,6 +343,59 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
     );
   }
 
+  const handleAuthClick = async () => {
+    console.log('🌍 Worldcoin Auth button clicked');
+    console.log('📱 MiniKit installed:', MiniKit.isInstalled());
+    
+    // Clear previous errors
+    setLocalError(null);
+    setError(null);
+    setSuccessMessage(null);
+    
+    if (!MiniKit.isInstalled()) {
+      console.log('❌ MiniKit not installed - must use World App');
+      setLocalError('Please open this app in World App to continue');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      console.log('🔐 Initiating wallet authentication...');
+      
+      const result = await authenticateWithWallet();
+      
+      if (result.success && result.user) {
+        console.log('✅ Authentication successful:', result.user);
+        
+        // Check if user is Orb verified
+        if (result.user.verificationLevel !== 'orb') {
+          setLocalError('⚠️ Orb verification required. You must be verified with a World ID Orb to access H World. Please visit a World ID Orb location to get verified.');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Set user in store
+        setUser(result.user);
+        setWorldIdVerification({
+          verified: true,
+          verification_level: result.user.verificationLevel,
+          nullifier_hash: result.user.nullifierHash,
+        });
+        
+        setSuccessMessage('✅ Authenticated! Welcome to H World');
+      } else {
+        console.log('❌ Authentication failed:', result.error);
+        setLocalError(result.error || 'Authentication failed. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('❌ Authentication error:', error);
+      setLocalError(error.message || 'Authentication failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className={`space-y-3 ${className}`}>
       {/* Error Message */}
@@ -304,9 +418,9 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
         </div>
       )}
       
-      {/* World ID Verification Button */}
+      {/* Worldcoin Wallet Auth Button */}
       <button
-        onClick={handleVerifyClick}
+        onClick={handleAuthClick}
         disabled={isLoading || !!successMessage}
         style={{
           backgroundColor: '#00FFBE',
@@ -327,27 +441,15 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
           e.currentTarget.style.backgroundColor = '#00FFBE';
         }}
       >
-        {successMessage ? '✅ Verified!' : isLoading ? '⏳ Verifying...' : MiniKit.isInstalled() ? '🌍 Verify with World ID' : '🌍 Verify with World ID (QR)'}
+        {successMessage ? '✅ Authenticated!' : isLoading ? '⏳ Authenticating...' : MiniKit.isInstalled() ? '🌍 Sign in with Worldcoin' : '🌍 Open in World App to Continue'}
       </button>
       
-      {/* Divider */}
-      <div className="flex items-center">
-        <div className="flex-1 border-t border-border"></div>
-        <span className="px-3 text-xs text-muted-foreground bg-background">or</span>
-        <div className="flex-1 border-t border-border"></div>
-      </div>
+      <p className="text-xs text-gray-400 text-center">
+        🔐 Orb-verified humans only
+      </p>
       
-      {/* Wallet Connect */}
-      <button
-        onClick={handleWalletAuth}
-        disabled={isLoading}
-        className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed py-3 px-4 rounded-lg font-medium transition-colors"
-      >
-        {isLoading ? 'Connecting...' : '👛 Connect Wallet'}
-      </button>
-      
-      <p className="text-xs text-muted-foreground text-center">
-        World ID provides proof of personhood while protecting your privacy
+      <p className="text-xs text-gray-500 text-center">
+        Worldcoin wallet authentication provides secure access while proving you're a verified human
       </p>
     </div>
   );

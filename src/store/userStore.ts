@@ -100,12 +100,19 @@ export const useUserStore = create<UserState>()(
         };
       }),
       partialize: (state) => ({
+        // Don't persist isAuthenticated - require re-auth on every app open
         user: state.user,
         worldIdVerification: state.worldIdVerification,
-        isAuthenticated: state.isAuthenticated,
+        // isAuthenticated is intentionally excluded - always starts as false
       }),
       onRehydrateStorage: () => (state) => {
         console.log('🔹 Hydration finished, state:', state);
+        if (state) {
+          // Force isAuthenticated to false on hydration
+          // User must authenticate again when app opens
+          state.isAuthenticated = false;
+          console.log('🔐 isAuthenticated set to false - re-authentication required');
+        }
         state?.setHasHydrated(true);
       },
     }

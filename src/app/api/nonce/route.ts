@@ -23,3 +23,21 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function POST() {
+  try {
+    // Generate a cryptographically secure random nonce
+    const nonce = randomBytes(32).toString('hex');
+    
+    return NextResponse.json({
+      nonce,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 minutes
+    });
+  } catch (error) {
+    console.error('Error generating nonce:', error);
+    return NextResponse.json(
+      { error: 'Failed to generate nonce' },
+      { status: 500 }
+    );
+  }
+}

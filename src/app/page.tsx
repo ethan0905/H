@@ -23,7 +23,7 @@ export default function HomePage() {
     }
   }, []);
 
-  // Log whenever auth state changes
+  // Log whenever auth state changes and handle logout redirect
   useEffect(() => {
     if (!_hasHydrated) return;
     
@@ -32,6 +32,11 @@ export default function HomePage() {
     console.log('- user:', user);
     console.log('- worldIdVerification:', worldIdVerification);
     console.log('- _hasHydrated:', _hasHydrated);
+    
+    // If user was logged out (isAuthenticated becomes false), ensure we show login screen
+    if (_hasHydrated && !isAuthenticated && !user) {
+      console.log('🚪 User logged out - showing login screen');
+    }
   }, [isAuthenticated, user, worldIdVerification, _hasHydrated]);
 
   useEffect(() => {
@@ -162,7 +167,8 @@ export default function HomePage() {
     // This shouldn't happen, but if it does, log it
   }
 
-  if (!isAuthenticated) {
+  // Always show login screen if not authenticated (regardless of guest mode for now)
+  if (!isAuthenticated && !guestMode) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8 text-center">

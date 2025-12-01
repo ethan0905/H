@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { useUserStore } from '@/store/userStore';
 import TweetCard from '@/components/tweet/TweetCard';
 import { Tweet } from '@/types';
+import { LogOut } from 'lucide-react';
 
 interface UserProfileProps {
   profile: any
@@ -21,7 +22,7 @@ export function UserProfile({ profile, setProfile }: UserProfileProps) {
   const [userRetweets, setUserRetweets] = useState<Tweet[]>([])
   const [userComments, setUserComments] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const { user } = useUserStore();
+  const { user, logout } = useUserStore();
 
   const handleSave = () => {
     const updated = {
@@ -33,6 +34,19 @@ export function UserProfile({ profile, setProfile }: UserProfileProps) {
     localStorage.setItem("user_profile", JSON.stringify(updated))
     setIsEditing(false)
   }
+
+  const handleLogout = () => {
+    if (confirm('Are you sure you want to logout?')) {
+      console.log('🚪 Logging out user...');
+      logout();
+      
+      // Force a page reload to ensure clean state
+      setTimeout(() => {
+        console.log('🔄 Reloading page to show login screen...');
+        window.location.href = '/';
+      }, 100);
+    }
+  };
 
   if (!profile && !user) return null
 
@@ -180,6 +194,13 @@ export function UserProfile({ profile, setProfile }: UserProfileProps) {
                 <p className="text-gray-400">Following</p>
               </div>
             </div>
+            <button
+              onClick={handleLogout}
+              className="mt-4 w-full flex items-center justify-center bg-red-600 hover:bg-red-500 text-white font-semibold rounded-full px-6 py-2 transition-all"
+            >
+              <LogOut className="w-5 h-5 mr-2" />
+              Logout
+            </button>
           </>
         )}
       </div>

@@ -11,6 +11,9 @@ export interface User {
   verified?: boolean; // Alternative field name for compatibility
   createdAt?: Date;
   updatedAt?: Date;
+  // World ID verification
+  verificationLevel?: 'orb' | 'device';
+  nullifierHash?: string;
   // Gamification fields
   currentRank?: string;
   rankScore?: number;
