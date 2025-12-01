@@ -1,6 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { useUserStore } from '@/store/userStore'
+import { useRouter } from 'next/navigation'
 
 type View = "home" | "communities" | "create" | "earnings" | "profile"
 
@@ -10,7 +11,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentView, onViewChange }: SidebarProps) {
-  const { logout } = useUserStore()
+  const { logout, user } = useUserStore()
+  const router = useRouter()
   
   const handleLogout = () => {
     logout()
@@ -38,7 +40,13 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
         {navItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onViewChange(item.id)}
+            onClick={() => {
+              if (item.id === "profile" && user) {
+                router.push(`/profile/${encodeURIComponent(user.id)}`)
+              } else {
+                onViewChange(item.id)
+              }
+            }}
             className={`w-full text-left px-2 md:px-4 py-3 rounded-lg transition-all flex items-center justify-center md:justify-start ${
               currentView === item.id
                 ? "bg-[#00FFBD]/10 text-[#00FFBD] border-2 border-[#00FFBD] shadow-[0_0_20px_rgba(0,255,189,0.2)]"
