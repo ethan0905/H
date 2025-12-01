@@ -2,10 +2,7 @@
   "/page": "app/page.js",
   "/profile/[userId]/page": "app/profile/[userId]/page.js",
   "/api/tweets/route": "app/api/tweets/route.js",
-  "/api/users/route": "app/api/users/route.js",
-  "/api/tweets/interactions/route": "app/api/tweets/interactions/route.js",
   "/api/gamification/user/[userId]/route": "app/api/gamification/user/[userId]/route.js",
-  "/api/users/[userId]/tweets/route": "app/api/users/[userId]/tweets/route.js",
-  "/api/tweets/[tweetId]/comments/route": "app/api/tweets/[tweetId]/comments/route.js",
-  "/api/users/profile/route": "app/api/users/profile/route.js"
+  "/api/users/route": "app/api/users/route.js",
+  "/api/users/[userId]/tweets/route": "app/api/users/[userId]/tweets/route.js"
 }

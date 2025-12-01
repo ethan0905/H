@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Send, ImageIcon, X } from 'lucide-react';
+import { Send, ImageIcon, X, TrendingUp } from 'lucide-react';
 import { useUserStore } from '@/store/userStore';
 import { useTweetStore } from '@/store/tweetStore';
 import { CreateTweetData, Tweet } from '@/types';
@@ -24,6 +24,9 @@ export default function ComposeTweet({
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useUserStore();
   const { addTweet } = useTweetStore();
+  
+  // Calculate estimated earnings
+  const estimatedEarnings = Math.min(content.length * 0.05, 50);
 
   const handleSubmit = async () => {
     if (!content.trim() || !user || isLoading) return;
@@ -54,6 +57,25 @@ export default function ComposeTweet({
       
       // Add to store
       addTweet(newTweet);
+      
+      // Store earnings data in localStorage for earnings view
+      const currentEarnings = JSON.parse(localStorage.getItem('user_earnings') || '{"total": 0, "last7Days": []}');
+      const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+      const todayIndex = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(today);
+      
+      // Update earnings
+      currentEarnings.total = (currentEarnings.total || 0) + estimatedEarnings;
+      if (!currentEarnings.last7Days) currentEarnings.last7Days = [];
+      
+      // Find or create today's entry
+      const todayEntry = currentEarnings.last7Days.find((d: any) => d.day === today);
+      if (todayEntry) {
+        todayEntry.amount += estimatedEarnings;
+      } else {
+        currentEarnings.last7Days.push({ day: today, amount: estimatedEarnings });
+      }
+      
+      localStorage.setItem('user_earnings', JSON.stringify(currentEarnings));
       
       // Clear form
       setContent('');
@@ -100,6 +122,27 @@ export default function ComposeTweet({
             className="w-full min-h-[100px] p-3 border border-gray-800 rounded-lg resize-none focus:ring-2 focus:ring-[#00FFBD] focus:border-transparent outline-none text-lg bg-black text-white placeholder-gray-500"
             disabled={isLoading}
           />
+
+          {/* Estimated Earnings Preview */}
+          {content.length > 0 && (
+            <div className="mt-3 border rounded-lg p-3" style={{ backgroundColor: "#00FFBD10", borderColor: "#00FFBD30" }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" style={{ color: "#00FFBD" }} />
+                  <span className="text-xs font-semibold text-gray-300">Estimated Earnings</span>
+                </div>
+                <span className="text-sm font-bold" style={{ color: "#00FFBD" }}>
+                  ${estimatedEarnings.toFixed(2)}
+                </span>
+              </div>
+              <div className="mt-2 relative h-1.5 bg-gray-900 rounded-full overflow-hidden">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min((estimatedEarnings / 50) * 100, 100)}%`, backgroundColor: "#00FFBD" }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Actions Bar */}
           <div className="flex items-center justify-between mt-3">
