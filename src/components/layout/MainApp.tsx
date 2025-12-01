@@ -81,11 +81,227 @@ export function MainApp({ userId }: MainAppProps) {
   )
 }
 
+function CommunityPostCard({ post }: { post: any }) {
+  const { MessageCircle, Send } = require("lucide-react")
+  const [showComments, setShowComments] = useState(false)
+  const [comments, setComments] = useState<any[]>([])
+  const [commentText, setCommentText] = useState('')
+  const [commentSubmitting, setCommentSubmitting] = useState(false)
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const { user } = useUserStore()
+  const { AvatarInitial } = require("@/components/ui/AvatarInitial")
+
+  const formatTime = (date: string | Date) => {
+    const now = new Date()
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    const diff = now.getTime() - dateObj.getTime()
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+
+    if (minutes < 1) return 'now'
+    if (minutes < 60) return `${minutes}m`
+    if (hours < 24) return `${hours}h`
+    return `${days}d`
+  }
+
+  const fetchComments = async () => {
+    if (commentsLoading) return
+    
+    setCommentsLoading(true)
+    try {
+      let url = `/api/tweets/${post.id}/comments`
+      if (user) {
+        url += `?currentUserId=${encodeURIComponent(user.id)}`
+      }
+      
+      const response = await fetch(url)
+      if (response.ok) {
+        const data = await response.json()
+        setComments(data.comments || [])
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error)
+    } finally {
+      setCommentsLoading(false)
+    }
+  }
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user || !commentText.trim() || commentSubmitting) return
+
+    setCommentSubmitting(true)
+    try {
+      const response = await fetch(`/api/tweets/${post.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: commentText.trim(),
+          authorId: user.id,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setComments([...comments, data.comment])
+        setCommentText('')
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error)
+    } finally {
+      setCommentSubmitting(false)
+    }
+  }
+
+  const handleToggleComments = () => {
+    setShowComments(!showComments)
+    if (!showComments && comments.length === 0) {
+      fetchComments()
+    }
+  }
+
+  return (
+    <>
+      <div className="bg-black border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors">
+        <div className="flex items-start gap-3">
+          <AvatarInitial
+            name={post.author.displayName || post.author.username || 'User'}
+            imageUrl={post.author.profilePictureUrl}
+            size="md"
+          />
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-semibold">{post.author.displayName || post.author.username}</span>
+              <span className="text-xs text-gray-500">{formatTime(post.createdAt)}</span>
+            </div>
+            <p className="text-sm text-gray-300 mb-3 whitespace-pre-wrap break-words">
+              {post.content}
+            </p>
+            <div className="flex items-center gap-4 text-gray-500">
+              <button 
+                onClick={handleToggleComments}
+                className="flex items-center gap-1 hover:text-[#00FFBD] transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span className="text-xs">{showComments ? comments.length : (post.replies || 0)}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Comments Modal */}
+      {showComments && (
+        <div 
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowComments(false)}
+        >
+          <div 
+            className="bg-black border border-gray-800 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-black border-b border-gray-800 px-4 sm:px-6 py-4 flex items-center justify-between z-10">
+              <h3 className="text-lg sm:text-xl font-bold text-white">Comments</h3>
+              <button
+                onClick={() => setShowComments(false)}
+                className="p-2 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+              >
+                <span className="text-2xl leading-none">×</span>
+              </button>
+            </div>
+
+            {/* Comments List - Scrollable */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+              {commentsLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#00FFBD] border-t-transparent mx-auto"></div>
+                </div>
+              ) : comments.length > 0 ? (
+                <div className="space-y-4">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-3">
+                      <AvatarInitial
+                        name={comment.author.displayName || comment.author.username || 'User'}
+                        imageUrl={comment.author.profilePictureUrl || comment.author.avatar}
+                        size="sm"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="bg-gray-900 rounded-2xl px-3 sm:px-4 py-3 border border-gray-800">
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span className="font-semibold text-white text-sm">
+                              {comment.author.displayName || comment.author.username}
+                            </span>
+                            <span className="text-gray-500 text-xs">
+                              {formatTime(comment.createdAt)}
+                            </span>
+                          </div>
+                          <p className="text-gray-100 leading-relaxed text-sm sm:text-base break-words">{comment.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-5xl mb-4">💬</div>
+                  <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
+                </div>
+              )}
+            </div>
+
+            {/* Comment Form - Sticky at Bottom */}
+            {user && (
+              <div className="sticky bottom-0 bg-black border-t border-gray-800 px-4 sm:px-6 py-4">
+                <form onSubmit={handleCommentSubmit} className="flex gap-3">
+                  <AvatarInitial
+                    name={user.displayName || user.username || 'User'}
+                    imageUrl={user.profilePictureUrl || user.avatar}
+                    size="sm"
+                    className="flex-shrink-0"
+                  />
+                  <div className="flex-1 flex gap-2">
+                    <input
+                      type="text"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="flex-1 px-3 sm:px-4 py-2.5 border border-gray-800 rounded-full focus:outline-none focus:ring-2 focus:ring-[#00FFBD] focus:border-transparent bg-gray-900 text-white placeholder:text-gray-500 transition-all text-sm sm:text-base"
+                      maxLength={280}
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      disabled={!commentText.trim() || commentSubmitting}
+                      className="px-4 sm:px-5 py-2.5 bg-[#00FFBD] hover:bg-[#00D9A0] text-black font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all min-w-[44px]"
+                    >
+                      {commentSubmitting ? (
+                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Send size={16} />
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 function CommunitiesView() {
   const { Bot, Globe, Gamepad, Film, Bitcoin, ArrowLeft, MessageCircle } = require("lucide-react")
   const [communities, setCommunities] = useState<any[]>([])
   const [selectedCommunity, setSelectedCommunity] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+  const [communityPosts, setCommunityPosts] = useState<any[]>([])
+  const [postsLoading, setPostsLoading] = useState(false)
+  const [postContent, setPostContent] = useState('')
+  const [postSubmitting, setPostSubmitting] = useState(false)
   const { user } = useUserStore()
   
   // Icon mapping for communities
@@ -167,6 +383,57 @@ function CommunitiesView() {
     return community?.isJoined || false
   }
 
+  // Fetch community posts when a community is selected
+  useEffect(() => {
+    if (selectedCommunity && user) {
+      const fetchCommunityPosts = async () => {
+        setPostsLoading(true)
+        try {
+          const response = await fetch(`/api/communities/${selectedCommunity}/posts?userId=${encodeURIComponent(user.id)}`)
+          if (response.ok) {
+            const data = await response.json()
+            setCommunityPosts(data.posts || [])
+          }
+        } catch (error) {
+          console.error('Error fetching community posts:', error)
+        } finally {
+          setPostsLoading(false)
+        }
+      }
+      fetchCommunityPosts()
+    }
+  }, [selectedCommunity, user])
+
+  const handleCommunityPost = async () => {
+    if (!user || !postContent.trim() || postSubmitting || !selectedCommunity) return
+
+    setPostSubmitting(true)
+    try {
+      const response = await fetch(`/api/communities/${selectedCommunity}/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: postContent.trim(),
+          authorId: user.id,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCommunityPosts([data.post, ...communityPosts])
+        setPostContent('')
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to post')
+      }
+    } catch (error) {
+      console.error('Error posting to community:', error)
+      alert('Failed to post. Please try again.')
+    } finally {
+      setPostSubmitting(false)
+    }
+  }
+
   // If a community is selected, show its feed
   if (selectedCommunity) {
     const community = communities.find(c => c.id === selectedCommunity)
@@ -181,7 +448,11 @@ function CommunitiesView() {
         <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-xl border-b border-gray-800">
           <div className="px-4 py-4 flex items-center gap-3">
             <button 
-              onClick={() => setSelectedCommunity(null)}
+              onClick={() => {
+                setSelectedCommunity(null)
+                setCommunityPosts([])
+                setPostContent('')
+              }}
               className="p-2 hover:bg-gray-800 rounded-full transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -207,39 +478,43 @@ function CommunitiesView() {
               {/* Compose in community */}
               <div className="bg-black border border-gray-800 rounded-lg p-4 mb-4">
                 <textarea
+                  value={postContent}
+                  onChange={(e) => setPostContent(e.target.value)}
                   placeholder={`Share in ${community.name}...`}
                   className="w-full min-h-[80px] bg-black border border-gray-800 rounded-lg text-white placeholder:text-gray-600 resize-none text-base p-3 focus:outline-none focus:border-[#00FFBD]/50"
+                  maxLength={280}
                 />
-                <div className="flex justify-end mt-2">
-                  <button className="bg-[#00FFBD] text-black font-semibold rounded-full px-6 py-2 hover:bg-[#00E5A8] transition-all">
-                    Post
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs text-gray-500">{postContent.length}/280</span>
+                  <button 
+                    onClick={handleCommunityPost}
+                    disabled={!postContent.trim() || postSubmitting}
+                    className="bg-[#00FFBD] text-black font-semibold rounded-full px-6 py-2 hover:bg-[#00E5A8] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {postSubmitting ? 'Posting...' : 'Post'}
                   </button>
                 </div>
               </div>
 
-              {/* Mock posts */}
-              <div className="space-y-4">
-                <div className="bg-black border border-gray-800 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold">Human #1234</span>
-                        <span className="text-xs text-gray-500">2h ago</span>
-                      </div>
-                      <p className="text-sm text-gray-300 mb-3">
-                        Great discussion happening here! Love this community 🚀
-                      </p>
-                      <div className="flex items-center gap-4 text-gray-500">
-                        <button className="flex items-center gap-1 hover:text-[#00FFBD] transition-colors">
-                          <MessageCircle className="w-4 h-4" />
-                          <span className="text-xs">5</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+              {/* Posts */}
+              {postsLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#00FFBD] border-t-transparent mx-auto mb-4"></div>
+                  <p className="text-gray-400">Loading posts...</p>
                 </div>
-              </div>
+              ) : communityPosts.length > 0 ? (
+                <div className="space-y-4">
+                  {communityPosts.map((post) => (
+                    <CommunityPostCard key={post.id} post={post} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-5xl mb-4">💬</div>
+                  <h3 className="text-xl font-bold mb-2">No posts yet</h3>
+                  <p className="text-gray-400">Be the first to share something in {community.name}!</p>
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-12">

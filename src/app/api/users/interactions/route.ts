@@ -6,44 +6,136 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const tweetIds = searchParams.get('tweetIds')?.split(',') || [];
+    const type = searchParams.get('type'); // 'likes' or 'retweets'
 
-    if (!userId || tweetIds.length === 0) {
+    if (!userId) {
       return NextResponse.json(
-        { error: 'userId and tweetIds are required' },
+        { error: 'userId is required' },
         { status: 400 }
       );
     }
 
-    // Get user's likes and retweets for these tweets
-    const [likes, retweets] = await Promise.all([
+    // If tweetIds provided, return interactions for those tweets (legacy)
+    if (tweetIds.length > 0) {
+      const [likes, retweets] = await Promise.all([
+        prisma.like.findMany({
+          where: {
+            userId,
+            tweetId: { in: tweetIds },
+          },
+          select: { tweetId: true },
+        }),
+        prisma.retweet.findMany({
+          where: {
+            userId,
+            tweetId: { in: tweetIds },
+          },
+          select: { tweetId: true },
+        }),
+      ]);
+
+      const likedTweetIds = new Set(likes.map(like => like.tweetId));
+      const retweetedTweetIds = new Set(retweets.map(retweet => retweet.tweetId));
+
+      const interactions = tweetIds.reduce((acc, tweetId) => {
+        acc[tweetId] = {
+          isLiked: likedTweetIds.has(tweetId),
+          isRetweeted: retweetedTweetIds.has(tweetId),
+        };
+        return acc;
+      }, {} as Record<string, { isLiked: boolean; isRetweeted: boolean }>);
+
+      return NextResponse.json({ interactions });
+    }
+
+    // Fetch all user's liked and retweeted tweets
+    const [likedTweets, retweetedTweets] = await Promise.all([
       prisma.like.findMany({
-        where: {
-          userId,
-          tweetId: { in: tweetIds },
+        where: { userId },
+        include: {
+          tweet: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  username: true,
+                  displayName: true,
+                  avatar: true,
+                  profilePictureUrl: true,
+                  isVerified: true,
+                  verificationLevel: true,
+                }
+              },
+              _count: {
+                select: {
+                  likes: true,
+                  retweets: true,
+                  comments: true,
+                }
+              }
+            }
+          }
         },
-        select: { tweetId: true },
+        orderBy: { createdAt: 'desc' }
       }),
       prisma.retweet.findMany({
-        where: {
-          userId,
-          tweetId: { in: tweetIds },
+        where: { userId },
+        include: {
+          tweet: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  username: true,
+                  displayName: true,
+                  avatar: true,
+                  profilePictureUrl: true,
+                  isVerified: true,
+                  verificationLevel: true,
+                }
+              },
+              _count: {
+                select: {
+                  likes: true,
+                  retweets: true,
+                  comments: true,
+                }
+              }
+            }
+          }
         },
-        select: { tweetId: true },
-      }),
+        orderBy: { createdAt: 'desc' }
+      })
     ]);
 
-    const likedTweetIds = new Set(likes.map(like => like.tweetId));
-    const retweetedTweetIds = new Set(retweets.map(retweet => retweet.tweetId));
+    // Transform to match Tweet format
+    const likes = likedTweets.map(like => ({
+      id: like.tweet.id,
+      content: like.tweet.content,
+      author: like.tweet.author,
+      createdAt: like.tweet.createdAt,
+      likes: like.tweet._count.likes,
+      retweets: like.tweet._count.retweets,
+      replies: like.tweet._count.comments,
+      isLiked: true,
+      isRetweeted: false,
+      media: [],
+    }));
 
-    const interactions = tweetIds.reduce((acc, tweetId) => {
-      acc[tweetId] = {
-        isLiked: likedTweetIds.has(tweetId),
-        isRetweeted: retweetedTweetIds.has(tweetId),
-      };
-      return acc;
-    }, {} as Record<string, { isLiked: boolean; isRetweeted: boolean }>);
+    const retweets = retweetedTweets.map(retweet => ({
+      id: retweet.tweet.id,
+      content: retweet.tweet.content,
+      author: retweet.tweet.author,
+      createdAt: retweet.tweet.createdAt,
+      likes: retweet.tweet._count.likes,
+      retweets: retweet.tweet._count.retweets,
+      replies: retweet.tweet._count.comments,
+      isLiked: false,
+      isRetweeted: true,
+      media: [],
+    }));
 
-    return NextResponse.json({ interactions });
+    return NextResponse.json({ likes, retweets });
   } catch (error) {
     console.error('Error fetching user interactions:', error);
     return NextResponse.json(

@@ -109,6 +109,11 @@ export const useTweetStore = create<TweetState>((set, get) => ({
 
   likeTweet: async (tweetId: string, userId: string) => {
     try {
+      // Get current state before optimistic update
+      const currentTweet = get().tweets.find(t => t.id === tweetId);
+      const wasLiked = currentTweet?.isLiked || false;
+      const action = wasLiked ? 'unlike' : 'like';
+
       // Optimistically update UI
       set((state) => ({
         tweets: state.tweets.map((tweet) =>
@@ -123,7 +128,6 @@ export const useTweetStore = create<TweetState>((set, get) => ({
       }));
 
       // Send request to backend
-      const action = get().tweets.find(t => t.id === tweetId)?.isLiked ? 'like' : 'unlike';
       const response = await fetch('/api/tweets/interactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -137,8 +141,8 @@ export const useTweetStore = create<TweetState>((set, get) => ({
             tweet.id === tweetId
               ? {
                   ...tweet,
-                  isLiked: !tweet.isLiked,
-                  likes: tweet.isLiked ? tweet.likes + 1 : tweet.likes - 1,
+                  isLiked: wasLiked,
+                  likes: wasLiked ? tweet.likes + 1 : tweet.likes - 1,
                 }
               : tweet
           ),
@@ -166,6 +170,11 @@ export const useTweetStore = create<TweetState>((set, get) => ({
 
   retweetTweet: async (tweetId: string, userId: string) => {
     try {
+      // Get current state before optimistic update
+      const currentTweet = get().tweets.find(t => t.id === tweetId);
+      const wasRetweeted = currentTweet?.isRetweeted || false;
+      const action = wasRetweeted ? 'unretweet' : 'retweet';
+
       // Optimistically update UI
       set((state) => ({
         tweets: state.tweets.map((tweet) =>
@@ -180,7 +189,6 @@ export const useTweetStore = create<TweetState>((set, get) => ({
       }));
 
       // Send request to backend
-      const action = get().tweets.find(t => t.id === tweetId)?.isRetweeted ? 'retweet' : 'unretweet';
       const response = await fetch('/api/tweets/interactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -194,8 +202,8 @@ export const useTweetStore = create<TweetState>((set, get) => ({
             tweet.id === tweetId
               ? {
                   ...tweet,
-                  isRetweeted: !tweet.isRetweeted,
-                  retweets: tweet.isRetweeted ? tweet.retweets + 1 : tweet.retweets - 1,
+                  isRetweeted: wasRetweeted,
+                  retweets: wasRetweeted ? tweet.retweets + 1 : tweet.retweets - 1,
                 }
               : tweet
           ),
