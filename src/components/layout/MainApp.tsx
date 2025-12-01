@@ -35,16 +35,7 @@ export function MainApp({ userId }: MainAppProps) {
   }, [])
 
   const handleNavigate = (view: View) => {
-    if (view === "profile") {
-      // Navigate to the user's profile page instead of showing UserProfile component
-      if (user) {
-        router.push(`/profile/${encodeURIComponent(user.id)}`)
-      } else if (userId) {
-        router.push(`/profile/${encodeURIComponent(userId)}`)
-      }
-    } else {
-      setCurrentView(view)
-    }
+    setCurrentView(view)
   }
 
   return (
@@ -92,76 +83,100 @@ export function MainApp({ userId }: MainAppProps) {
 
 function CommunitiesView() {
   const { Bot, Globe, Gamepad, Film, Bitcoin, ArrowLeft, MessageCircle } = require("lucide-react")
-  const [joinedCommunities, setJoinedCommunities] = useState<number[]>([])
+  const [communities, setCommunities] = useState<any[]>([])
   const [selectedCommunity, setSelectedCommunity] = useState<number | null>(null)
+  const [loading, setLoading] = useState(true)
+  const { user } = useUserStore()
   
-  const communities = [
-    {
-      id: 1,
-      name: "AI Agents",
-      category: "Technology",
-      members: 68293,
-      gradient: "from-blue-500 to-cyan-500",
-      description: "Discuss AI agents, automation, and the future of artificial intelligence",
-      Icon: Bot,
-    },
-    {
-      id: 2,
-      name: "Human World",
-      category: "Community",
-      members: 124518,
-      gradient: "from-green-500 to-emerald-500",
-      description: "The official H World community for verified humans",
-      Icon: Globe,
-    },
-    {
-      id: 3,
-      name: "Gaming",
-      category: "Entertainment",
-      members: 89104,
-      gradient: "from-purple-500 to-pink-500",
-      description: "Gaming culture, reviews, and human-created content",
-      Icon: Gamepad,
-    },
-    {
-      id: 4,
-      name: "Movies",
-      category: "Entertainment",
-      members: 76913,
-      gradient: "from-orange-500 to-red-500",
-      description: "Film discussions, reviews, and recommendations by humans",
-      Icon: Film,
-    },
-    {
-      id: 5,
-      name: "Bitcoin",
-      category: "Finance",
-      members: 95267,
-      gradient: "from-yellow-500 to-orange-500",
-      description: "Cryptocurrency, blockchain, and financial freedom",
-      Icon: Bitcoin,
-    },
-  ]
+  // Icon mapping for communities
+  const iconMap: { [key: string]: any } = {
+    "AI Agents": Bot,
+    "Human World": Globe,
+    "Gaming": Gamepad,
+    "Movies": Film,
+    "Bitcoin": Bitcoin,
+  }
 
-  const handleJoinCommunity = (communityId: number) => {
-    if (joinedCommunities.includes(communityId)) {
-      // Leave community
-      setJoinedCommunities(joinedCommunities.filter(id => id !== communityId))
-    } else {
-      // Join community - grants ability to post, comment, upvote in this community
-      setJoinedCommunities([...joinedCommunities, communityId])
+  const gradientMap: { [key: string]: string } = {
+    "AI Agents": "from-blue-500 to-cyan-500",
+    "Human World": "from-green-500 to-emerald-500",
+    "Gaming": "from-purple-500 to-pink-500",
+    "Movies": "from-orange-500 to-red-500",
+    "Bitcoin": "from-yellow-500 to-orange-500",
+  }
+
+  // Fetch communities from API
+  useEffect(() => {
+    const fetchCommunities = async () => {
+      try {
+        const url = user ? `/api/communities?userId=${encodeURIComponent(user.id)}` : '/api/communities'
+        const response = await fetch(url)
+        if (!response.ok) throw new Error('Failed to fetch communities')
+        const data = await response.json()
+        setCommunities(data.communities || [])
+      } catch (error) {
+        console.error('Error fetching communities:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCommunities()
+  }, [user])
+
+  const handleJoinCommunity = async (communityId: number) => {
+    if (!user) return
+    
+    const community = communities.find(c => c.id === communityId)
+    if (!community) return
+
+    try {
+      if (community.isJoined) {
+        // Leave community
+        const response = await fetch('/api/communities/leave', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ communityId, userId: user.id }),
+        })
+        if (!response.ok) throw new Error('Failed to leave community')
+        
+        // Update local state
+        setCommunities(communities.map(c => 
+          c.id === communityId ? { ...c, isJoined: false, memberCount: c.memberCount - 1 } : c
+        ))
+      } else {
+        // Join community
+        const response = await fetch('/api/communities/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ communityId, userId: user.id }),
+        })
+        if (!response.ok) throw new Error('Failed to join community')
+        
+        // Update local state
+        setCommunities(communities.map(c => 
+          c.id === communityId ? { ...c, isJoined: true, memberCount: c.memberCount + 1 } : c
+        ))
+      }
+    } catch (error) {
+      console.error('Error toggling community membership:', error)
     }
   }
 
-  const isJoined = (communityId: number) => joinedCommunities.includes(communityId)
+  const isJoined = (communityId: number) => {
+    const community = communities.find(c => c.id === communityId)
+    return community?.isJoined || false
+  }
 
   // If a community is selected, show its feed
   if (selectedCommunity) {
     const community = communities.find(c => c.id === selectedCommunity)
     if (!community) return null
 
+    const Icon = iconMap[community.name] || Globe
+    const gradient = gradientMap[community.name] || "from-gray-500 to-gray-700"
+
     return (
-      <div className="min-h-screen bg-black text-white">
+      <div className="min-h-screen bg-black text-white pb-20">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-xl border-b border-gray-800">
           <div className="px-4 py-4 flex items-center gap-3">
@@ -173,13 +188,13 @@ function CommunitiesView() {
             </button>
             <div className="flex items-center gap-3">
               <div
-                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${community.gradient} flex items-center justify-center`}
+                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center`}
               >
-                <community.Icon className="w-5 h-5 text-white" />
+                <Icon className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h1 className="text-xl font-bold">{community.name}</h1>
-                <p className="text-xs text-gray-500">{community.members.toLocaleString()} members</p>
+                <p className="text-xs text-gray-500">{community.memberCount.toLocaleString()} members</p>
               </div>
             </div>
           </div>
@@ -187,7 +202,7 @@ function CommunitiesView() {
 
         {/* Community Feed */}
         <div className="p-4">
-          {isJoined(community.id) ? (
+          {community.isJoined ? (
             <>
               {/* Compose in community */}
               <div className="bg-black border border-gray-800 rounded-lg p-4 mb-4">
@@ -228,8 +243,8 @@ function CommunitiesView() {
             </>
           ) : (
             <div className="text-center py-12">
-              <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${community.gradient} flex items-center justify-center`}>
-                <community.Icon className="w-10 h-10 text-white" />
+              <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+                <Icon className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-2">Join {community.name}</h3>
               <p className="text-gray-400 mb-6">Join this community to post, comment, and interact</p>
@@ -241,6 +256,17 @@ function CommunitiesView() {
               </button>
             </div>
           )}
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FFBD] mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading communities...</p>
         </div>
       </div>
     )
@@ -276,49 +302,54 @@ function CommunitiesView() {
 
       {/* Communities List */}
       <div className="px-4 space-y-4 pb-6">
-        {communities.map((community) => (
-          <div 
-            key={community.id} 
-            className="bg-black border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-gray-700 transition-colors"
-            onClick={() => setSelectedCommunity(community.id)}
-          >
-            {/* Banner */}
-            <div className={`h-24 bg-gradient-to-r ${community.gradient} opacity-20`} />
+        {communities.map((community) => {
+          const Icon = iconMap[community.name] || Globe
+          const gradient = gradientMap[community.name] || "from-gray-500 to-gray-700"
+          
+          return (
+            <div 
+              key={community.id} 
+              className="bg-black border border-gray-800 rounded-2xl overflow-hidden cursor-pointer hover:border-gray-700 transition-colors"
+              onClick={() => setSelectedCommunity(community.id)}
+            >
+              {/* Banner */}
+              <div className={`h-24 bg-gradient-to-r ${gradient} opacity-20`} />
 
-            {/* Content */}
-            <div className="p-4 -mt-8">
-              <div
-                className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${community.gradient} flex items-center justify-center mb-3 border-4 border-black`}
-              >
-                <community.Icon className="w-8 h-8 text-white" />
-              </div>
-
-              <h3 className="text-xl font-bold mb-1">{community.name}</h3>
-              <p className="text-xs text-gray-500 mb-2">{community.category}</p>
-              <p className="text-sm text-gray-400 leading-relaxed mb-4">{community.description}</p>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Users className="w-4 h-4" />
-                  <span className="text-sm font-medium">{community.members.toLocaleString()} humans</span>
-                </div>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleJoinCommunity(community.id)
-                  }}
-                  className={`font-semibold rounded-full px-6 py-2 transition-all ${
-                    isJoined(community.id)
-                      ? "bg-transparent border-2 border-[#00FFBD] text-[#00FFBD] hover:bg-[#00FFBD]/10"
-                      : "bg-[#00FFBD] text-black hover:bg-[#00E5A8] shadow-[0_0_20px_rgba(0,255,189,0.3)]"
-                  }`}
+              {/* Content */}
+              <div className="p-4 -mt-8">
+                <div
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-3 border-4 border-black`}
                 >
-                  {isJoined(community.id) ? "Joined" : "Join"}
-                </button>
+                  <Icon className="w-8 h-8 text-white" />
+                </div>
+
+                <h3 className="text-xl font-bold mb-1">{community.name}</h3>
+                <p className="text-xs text-gray-500 mb-2">{community.category}</p>
+                <p className="text-sm text-gray-400 leading-relaxed mb-4">{community.description}</p>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Users className="w-4 h-4" />
+                    <span className="text-sm font-medium">{community.memberCount.toLocaleString()} humans</span>
+                  </div>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleJoinCommunity(community.id)
+                    }}
+                    className={`font-semibold rounded-full px-6 py-2 transition-all ${
+                      isJoined(community.id)
+                        ? "bg-transparent border-2 border-[#00FFBD] text-[#00FFBD] hover:bg-[#00FFBD]/10"
+                        : "bg-[#00FFBD] text-black hover:bg-[#00E5A8] shadow-[0_0_20px_rgba(0,255,189,0.3)]"
+                    }`}
+                  >
+                    {isJoined(community.id) ? "Joined" : "Join"}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -517,6 +548,9 @@ function CreateView({ onPostCreated }: { onPostCreated?: () => void }) {
 
 function EarningsView() {
   const { TrendingUp, Award, Zap, Trophy, Star, Info, Check } = require("lucide-react")
+  const { user } = useUserStore()
+  const [isUpgrading, setIsUpgrading] = useState(false)
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'free' | 'pro'>('free')
   
   // Load earnings from localStorage
   const storedEarnings = JSON.parse(localStorage.getItem('user_earnings') || '{"total": 0, "last7Days": []}')
@@ -539,6 +573,93 @@ function EarningsView() {
     { icon: Star, label: "First Payment", bgColor: "#00FFBD" },
     { icon: Zap, label: "Elite Tier", colorClass: "from-purple-500 to-pink-500" },
   ]
+
+  // Check subscription status
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (!user) return
+      try {
+        const response = await fetch(`/api/subscriptions/status?userId=${user.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setSubscriptionStatus(data.plan || 'free')
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error)
+      }
+    }
+    checkSubscription()
+  }, [user])
+
+  const handleUpgradeToPro = async () => {
+    if (!user || isUpgrading) return
+    
+    setIsUpgrading(true)
+    try {
+      // Step 1: Call the upgrade API to initiate payment intent
+      const response = await fetch('/api/subscriptions/upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to initiate upgrade')
+      }
+
+      const { paymentIntentId } = await response.json()
+      
+      // Step 2: Import and use World Pay
+      const { initiateWorldPayment, generatePaymentReference } = await import('@/lib/worldpay')
+      const { MiniKit } = await import('@worldcoin/minikit-js')
+      
+      // Check if running in World App
+      if (!MiniKit.isInstalled()) {
+        alert('⚠️ World App Required\n\nTo complete your Pro subscription, please open this app in World App.\n\nPayment Intent: ' + paymentIntentId)
+        return
+      }
+      
+      // Step 3: Generate unique payment reference
+      const paymentReference = generatePaymentReference(user.id, 'pro_subscription')
+      
+      // Step 4: Initiate World Pay payment
+      const paymentResult = await initiateWorldPayment(
+        7.40, // $7.40/month
+        'H World Pro Subscription - Monthly',
+        paymentReference
+      )
+      
+      if (!paymentResult.success) {
+        throw new Error(paymentResult.error || 'Payment failed')
+      }
+      
+      // Step 5: Confirm payment on backend
+      const confirmResponse = await fetch('/api/subscriptions/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          paymentIntentId,
+          transactionId: paymentResult.transactionId,
+        }),
+      })
+      
+      if (!confirmResponse.ok) {
+        throw new Error('Failed to confirm subscription')
+      }
+      
+      // Step 6: Update UI
+      setSubscriptionStatus('pro')
+      alert('🎉 Welcome to Pro!\n\nYour subscription is now active. Enjoy unlimited posts, lower fees, and exclusive features!')
+      
+    } catch (error) {
+      console.error('Error upgrading to Pro:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert('❌ Upgrade Failed\n\n' + errorMessage)
+    } finally {
+      setIsUpgrading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-black text-white pb-6">
@@ -759,7 +880,7 @@ function EarningsView() {
               className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold bg-black border-2"
               style={{ color: "#00FFBD", borderColor: "#00FFBD" }}
             >
-              BEST VALUE
+              {subscriptionStatus === 'pro' ? 'CURRENT PLAN' : 'BEST VALUE'}
             </div>
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -768,9 +889,20 @@ function EarningsView() {
                   $7.40<span className="text-sm text-gray-500">/mo</span>
                 </p>
               </div>
-              <button className="rounded-full font-bold text-black px-6 py-2 transition-all hover:opacity-90" style={{ backgroundColor: "#00FFBD" }}>
-                Upgrade Now
-              </button>
+              {subscriptionStatus === 'pro' ? (
+                <button className="border-2 rounded-full px-6 py-2 text-sm font-semibold" style={{ borderColor: "#00FFBD", color: "#00FFBD" }}>
+                  Active
+                </button>
+              ) : (
+                <button 
+                  onClick={handleUpgradeToPro}
+                  disabled={isUpgrading}
+                  className="rounded-full font-bold text-black px-6 py-2 transition-all hover:opacity-90 disabled:opacity-50" 
+                  style={{ backgroundColor: "#00FFBD" }}
+                >
+                  {isUpgrading ? 'Processing...' : 'Upgrade Now'}
+                </button>
+              )}
             </div>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">

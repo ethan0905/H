@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { Send, ImageIcon, X, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Send, ImageIcon, X, TrendingUp, Crown } from 'lucide-react';
 import { useUserStore } from '@/store/userStore';
 import { useTweetStore } from '@/store/tweetStore';
 import { CreateTweetData, Tweet } from '@/types';
 import { AvatarInitial } from '@/components/ui/AvatarInitial';
+import { getSubscriptionLimits, isPostLengthValid, canUserPost, getRemainingPosts } from '@/lib/subscription-features';
 
 interface ComposeTweetProps {
   onTweetCreated?: (tweet: Tweet) => void;
@@ -17,16 +18,56 @@ interface ComposeTweetProps {
 export default function ComposeTweet({
   onTweetCreated,
   placeholder = "What's happening?",
-  maxLength = 280,
+  maxLength,
   compact = false,
 }: ComposeTweetProps) {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'pro'>('free');
+  const [postsToday, setPostsToday] = useState(0);
   const { user } = useUserStore();
   const { addTweet } = useTweetStore();
   
+  // Get subscription limits
+  const limits = getSubscriptionLimits(subscriptionTier);
+  const effectiveMaxLength = maxLength || limits.maxCharactersPerPost;
+  
   // Calculate estimated earnings
   const estimatedEarnings = Math.min(content.length * 0.05, 50);
+
+  // Fetch subscription status
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const response = await fetch('/api/subscriptions/status');
+        if (response.ok) {
+          const data = await response.json();
+          setSubscriptionTier(data.plan === 'pro' ? 'pro' : 'free');
+        }
+      } catch (error) {
+        console.error('Error fetching subscription:', error);
+      }
+    };
+
+    fetchSubscriptionStatus();
+  }, [user]);
+
+  // Track posts today (simplified - in production, fetch from API)
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const storedData = localStorage.getItem('postsToday');
+    if (storedData) {
+      const { date, count } = JSON.parse(storedData);
+      if (date === today) {
+        setPostsToday(count);
+      } else {
+        setPostsToday(0);
+        localStorage.setItem('postsToday', JSON.stringify({ date: today, count: 0 }));
+      }
+    }
+  }, []);
 
   const handleSubmit = async () => {
     if (!content.trim() || !user || isLoading) return;
@@ -58,21 +99,27 @@ export default function ComposeTweet({
       // Add to store
       addTweet(newTweet);
       
+      // Update posts today counter
+      const today = new Date().toDateString();
+      const newCount = postsToday + 1;
+      setPostsToday(newCount);
+      localStorage.setItem('postsToday', JSON.stringify({ date: today, count: newCount }));
+      
       // Store earnings data in localStorage for earnings view
       const currentEarnings = JSON.parse(localStorage.getItem('user_earnings') || '{"total": 0, "last7Days": []}');
-      const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-      const todayIndex = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(today);
+      const todayShort = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+      const todayIndex = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(todayShort);
       
       // Update earnings
       currentEarnings.total = (currentEarnings.total || 0) + estimatedEarnings;
       if (!currentEarnings.last7Days) currentEarnings.last7Days = [];
       
       // Find or create today's entry
-      const todayEntry = currentEarnings.last7Days.find((d: any) => d.day === today);
+      const todayEntry = currentEarnings.last7Days.find((d: any) => d.day === todayShort);
       if (todayEntry) {
         todayEntry.amount += estimatedEarnings;
       } else {
-        currentEarnings.last7Days.push({ day: today, amount: estimatedEarnings });
+        currentEarnings.last7Days.push({ day: todayShort, amount: estimatedEarnings });
       }
       
       localStorage.setItem('user_earnings', JSON.stringify(currentEarnings));
@@ -91,9 +138,10 @@ export default function ComposeTweet({
     }
   };
 
-  const remainingChars = maxLength - content.length;
+  const remainingChars = effectiveMaxLength - content.length;
   const isOverLimit = remainingChars < 0;
-  const canTweet = content.trim().length > 0 && !isOverLimit && !isLoading;
+  const hasPostsRemaining = canUserPost(subscriptionTier, postsToday);
+  const canTweet = content.trim().length > 0 && !isOverLimit && !isLoading && hasPostsRemaining;
 
   if (!user) {
     return (
@@ -103,8 +151,47 @@ export default function ComposeTweet({
     );
   }
 
+  // Check if user has reached daily post limit
+  const postsRemaining = getRemainingPosts(subscriptionTier, postsToday);
+  const hasReachedLimit = !hasPostsRemaining;
+
   return (
     <div className="bg-black border border-gray-800 rounded-lg p-4">
+      {/* Subscription Info Banner */}
+      <div className="mb-3 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2">
+          {subscriptionTier === 'pro' ? (
+            <>
+              <Crown className="w-4 h-4 text-[#00FFBD]" />
+              <span className="text-[#00FFBD] font-semibold">Pro Creator</span>
+            </>
+          ) : (
+            <span className="text-gray-500">Free Plan</span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <span className={`${hasReachedLimit ? 'text-red-500' : 'text-gray-400'}`}>
+            {typeof postsRemaining === 'string' ? postsRemaining : `${postsRemaining} posts left today`}
+          </span>
+          <span className="text-gray-600">•</span>
+          <span className="text-gray-400">{effectiveMaxLength} chars max</span>
+        </div>
+      </div>
+
+      {hasReachedLimit && (
+        <div className="mb-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+          <div className="flex items-start gap-2">
+            <X className="w-4 h-4 text-red-500 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-red-400 font-semibold">Daily post limit reached</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Upgrade to Pro for unlimited posts or wait until tomorrow.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex space-x-3">
         {/* User Avatar */}
         <AvatarInitial 
@@ -118,9 +205,9 @@ export default function ComposeTweet({
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder={placeholder}
-            className="w-full min-h-[100px] p-3 border border-gray-800 rounded-lg resize-none focus:ring-2 focus:ring-[#00FFBD] focus:border-transparent outline-none text-lg bg-black text-white placeholder-gray-500"
-            disabled={isLoading}
+            placeholder={hasReachedLimit ? 'Daily post limit reached. Upgrade to Pro for unlimited posts.' : placeholder}
+            className="w-full min-h-[100px] p-3 border border-gray-800 rounded-lg resize-none focus:ring-2 focus:ring-[#00FFBD] focus:border-transparent outline-none text-lg bg-black text-white placeholder-gray-500 disabled:opacity-50"
+            disabled={isLoading || hasReachedLimit}
           />
 
           {/* Estimated Earnings Preview */}

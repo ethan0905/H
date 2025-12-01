@@ -53,6 +53,8 @@ model User {
   invitedById           String?
   invitedUsers          User[]    @relation("UserInvites")
   leaderboardEntries    LeaderboardEntry[]
+  communityMemberships  CommunityMember[]
+  subscription          Subscription?
 
   @@map("users")
 }
@@ -246,4 +248,53 @@ model LeaderboardEntry {
   @@unique([snapshotId, userId])
   @@index([snapshotId, rankPosition])
   @@map("leaderboard_entries")
+}
+
+model Community {
+  id                    String    @id @default(cuid())
+  name                  String    @unique
+  description           String
+  category              String
+  iconGradient          String    // e.g. "from-blue-500 to-cyan-500"
+  iconName              String    // e.g. "Bot", "Globe"
+  memberCount           Int       @default(0)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  members               CommunityMember[]
+
+  @@map("communities")
+}
+
+model CommunityMember {
+  id                    String    @id @default(cuid())
+  userId                String
+  communityId           String
+  joinedAt              DateTime  @default(now())
+
+  // Relations
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community             Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+  @@map("community_members")
+}
+
+model Subscription {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  plan                  String    // "free" or "pro"
+  status                String    // "active", "cancelled", "expired"
+  worldPaymentId        String?   // World Pay transaction ID
+  startDate             DateTime  @default(now())
+  endDate               DateTime?
+  autoRenew             Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
 }

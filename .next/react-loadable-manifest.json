@@ -24,5 +24,15 @@
     "files": [
       "static/chunks/_app-pages-browser_src_app_leaderboards_page_tsx.js"
     ]
+  },
+  "components/layout/MainApp.tsx -> @/lib/worldpay": {
+    "id": "components/layout/MainApp.tsx -> @/lib/worldpay",
+    "files": [
+      "static/chunks/_app-pages-browser_src_lib_worldpay_ts.js"
+    ]
+  },
+  "components/layout/MainApp.tsx -> @worldcoin/minikit-js": {
+    "id": "components/layout/MainApp.tsx -> @worldcoin/minikit-js",
+    "files": []
   }
 }
