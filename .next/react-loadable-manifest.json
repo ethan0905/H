@@ -31,12 +31,6 @@
       "static/chunks/_app-pages-browser_src_lib_wld-balance_ts.js"
     ]
   },
-  "components/layout/MainApp.tsx -> @/lib/worldpay": {
-    "id": "components/layout/MainApp.tsx -> @/lib/worldpay",
-    "files": [
-      "static/chunks/_app-pages-browser_src_lib_worldpay_ts.js"
-    ]
-  },
   "components/layout/MainApp.tsx -> @worldcoin/minikit-js": {
     "id": "components/layout/MainApp.tsx -> @worldcoin/minikit-js",
     "files": []

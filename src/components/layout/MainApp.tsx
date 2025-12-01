@@ -914,64 +914,88 @@ function EarningsView() {
     
     setIsUpgrading(true)
     try {
-      // Step 1: Call the upgrade API to initiate payment intent
-      const response = await fetch('/api/subscriptions/upgrade', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to initiate upgrade')
-      }
-
-      const { paymentIntentId } = await response.json()
-      
-      // Step 2: Import and use World Pay
-      const { initiateWorldPayment, generatePaymentReference } = await import('@/lib/worldpay')
-      const { MiniKit } = await import('@worldcoin/minikit-js')
+      const { MiniKit, tokenToDecimals, Tokens } = await import('@worldcoin/minikit-js')
       
       // Check if running in World App
       if (!MiniKit.isInstalled()) {
-        alert('⚠️ World App Required\n\nTo complete your Pro subscription, please open this app in World App.\n\nPayment Intent: ' + paymentIntentId)
+        alert('⚠️ World App Required\n\nTo complete your Pro subscription, please open this app in World App.')
+        setIsUpgrading(false)
         return
       }
       
-      // Step 3: Generate unique payment reference
-      const paymentReference = generatePaymentReference(user.id, 'pro_subscription')
+      // Step 1: Generate unique payment reference
+      const paymentReference = crypto.randomUUID().replace(/-/g, '')
       
-      // Step 4: Initiate World Pay payment
-      const paymentResult = await initiateWorldPayment(
-        7.40, // $7.40/month
-        'H World Pro Subscription - Monthly',
-        paymentReference
-      )
-      
-      if (!paymentResult.success) {
-        throw new Error(paymentResult.error || 'Payment failed')
-      }
-      
-      // Step 5: Confirm payment on backend
-      const confirmResponse = await fetch('/api/subscriptions/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          paymentIntentId,
-          transactionId: paymentResult.transactionId,
-        }),
+      console.log('💰 Initiating Pro subscription payment:', {
+        amount: '7.40 USD',
+        reference: paymentReference,
+        to: '0x3ffd3381a60c3bd973acbe1c94076de85b3d1fc9'
       })
       
-      if (!confirmResponse.ok) {
-        throw new Error('Failed to confirm subscription')
+      // Step 2: Create payment command
+      // Convert $7.40 to token amounts
+      // For WLD: assuming ~$2.50 per WLD = 2.96 WLD
+      // For USDC: $7.40 = 7.40 USDC
+      const payload = {
+        reference: paymentReference,
+        to: '0x3ffd3381a60c3bd973acbe1c94076de85b3d1fc9', // Your recipient address
+        tokens: [
+          {
+            symbol: Tokens.WLD,
+            token_amount: tokenToDecimals(2.96, Tokens.WLD).toString(), // ~$7.40 worth of WLD
+          },
+          {
+            symbol: Tokens.USDC,
+            token_amount: tokenToDecimals(7.40, Tokens.USDC).toString(), // $7.40 in USDC
+          },
+        ],
+        description: 'H World Pro Subscription - Monthly ($7.40)',
       }
       
-      // Step 6: Update UI
-      setSubscriptionStatus('pro')
-      alert('🎉 Welcome to Pro!\n\nYour subscription is now active. Enjoy unlimited posts, lower fees, and exclusive features!')
+      console.log('📤 Sending payment command:', payload)
+      
+      // Step 3: Send payment command to MiniKit
+      const { finalPayload } = await MiniKit.commandsAsync.pay(payload)
+      
+      console.log('📨 Payment response:', finalPayload)
+      
+      // Step 4: Check payment status
+      if (finalPayload.status === 'success') {
+        console.log('✅ Payment successful! Transaction ID:', finalPayload.transaction_id)
+        
+        // Step 5: Confirm payment on backend (optional - for your records)
+        try {
+          const confirmResponse = await fetch('/api/subscriptions/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: user.id,
+              reference: paymentReference,
+              transactionId: finalPayload.transaction_id,
+              status: finalPayload.status,
+            }),
+          })
+          
+          if (confirmResponse.ok) {
+            console.log('✅ Payment confirmed on backend')
+          }
+        } catch (confirmError) {
+          console.warn('⚠️ Backend confirmation failed (payment still successful):', confirmError)
+        }
+        
+        // Step 6: Update UI
+        setSubscriptionStatus('pro')
+        alert('🎉 Welcome to Pro!\n\nYour subscription is now active. Enjoy unlimited posts, lower fees, and exclusive features!')
+      } else {
+        throw new Error(
+          finalPayload.status === 'error' 
+            ? 'Payment failed' 
+            : 'Payment was cancelled by user'
+        )
+      }
       
     } catch (error) {
-      console.error('Error upgrading to Pro:', error)
+      console.error('❌ Error upgrading to Pro:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       alert('❌ Upgrade Failed\n\n' + errorMessage)
     } finally {
@@ -1149,7 +1173,7 @@ function EarningsView() {
 
           {/* WLD Balance Section */}
           {user?.walletAddress && (
-            <div className="mb-4 p-4 bg-black/40 rounded-xl border border-gray-800">
+            <div className="p-4 bg-black/40 rounded-xl border border-gray-800">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <p className="text-xs text-gray-500 mb-1">$WLD Balance</p>
@@ -1199,14 +1223,6 @@ function EarningsView() {
               </div>
             </div>
           )}
-
-          <button
-            className="w-full text-black font-bold rounded-full py-4"
-            style={{ backgroundColor: "#00FFBD" }}
-            disabled={!user?.walletAddress}
-          >
-            {user?.walletAddress ? 'Withdraw Earnings' : 'Connect Wallet to Withdraw'}
-          </button>
         </div>
       </div>
 
