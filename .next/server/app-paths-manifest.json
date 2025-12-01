@@ -1,8 +1,12 @@
 {
   "/api/subscriptions/status/route": "app/api/subscriptions/status/route.js",
+  "/profile/[userId]/page": "app/profile/[userId]/page.js",
   "/page": "app/page.js",
+  "/api/users/[userId]/tweets/route": "app/api/users/[userId]/tweets/route.js",
   "/api/tweets/route": "app/api/tweets/route.js",
+  "/api/subscriptions/upgrade/route": "app/api/subscriptions/upgrade/route.js",
   "/api/communities/route": "app/api/communities/route.js",
-  "/api/communities/join/route": "app/api/communities/join/route.js",
-  "/profile/[userId]/page": "app/profile/[userId]/page.js"
+  "/api/users/interactions/route": "app/api/users/interactions/route.js",
+  "/api/users/[userId]/comments/route": "app/api/users/[userId]/comments/route.js",
+  "/api/tweets/interactions/route": "app/api/tweets/interactions/route.js"
 }
