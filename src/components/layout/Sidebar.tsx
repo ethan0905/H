@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button"
 import { useUserStore } from '@/store/userStore'
 
-type View = "feed" | "profile" | "explore" | "messages" | "leaderboards"
+type View = "home" | "communities" | "create" | "earnings" | "profile"
 
 interface SidebarProps {
   currentView: View
@@ -17,21 +17,20 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
   }
 
   const navItems = [
-    { id: "feed", label: "Feed", icon: "📰" },
-    { id: "explore", label: "Explore", icon: "🔍" },
-    { id: "leaderboards", label: "Leaderboards", icon: "🏆" },
-    { id: "messages", label: "Messages", icon: "💬" },
-    { id: "profile", label: "Profile", icon: "👤" },
+    { id: "home" as View, label: "Home", icon: "🏠" },
+    { id: "communities" as View, label: "Communities", icon: "�" },
+    { id: "earnings" as View, label: "Earnings", icon: "�" },
+    { id: "profile" as View, label: "Profile", icon: "👤" },
   ]
 
   return (
-    <aside className="hidden sm:flex flex-col w-16 md:w-64 border-r border-border p-3 md:p-6 overflow-y-auto bg-background">
+    <aside className="hidden sm:flex flex-col w-16 md:w-64 border-r border-gray-800 p-3 md:p-6 overflow-y-auto bg-black">
       {/* Logo */}
       <div className="mb-8 md:mb-12">
         <div className="text-3xl font-bold text-center md:text-left">
-          <span className="text-brand">H</span>
+          <span className="text-[#00FFBD]">H</span>
         </div>
-        <p className="hidden md:block text-sm text-muted-foreground mt-1">Humanverse</p>
+        <p className="hidden md:block text-sm text-gray-400 mt-1">Humanverse</p>
       </div>
 
       {/* Navigation */}
@@ -39,11 +38,11 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
         {navItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onViewChange(item.id as View)}
+            onClick={() => onViewChange(item.id)}
             className={`w-full text-left px-2 md:px-4 py-3 rounded-lg transition-all flex items-center justify-center md:justify-start ${
               currentView === item.id
-                ? "bg-brand/20 text-brand border-2 border-brand"
-                : "text-muted-foreground hover:bg-brand/10 hover:text-brand hover:border-2 hover:border-brand border-2 border-transparent"
+                ? "bg-[#00FFBD]/10 text-[#00FFBD] border-2 border-[#00FFBD] shadow-[0_0_20px_rgba(0,255,189,0.2)]"
+                : "text-gray-400 hover:bg-gray-900 hover:text-[#00FFBD] hover:border-2 hover:border-[#00FFBD]/30 border-2 border-transparent"
             }`}
           >
             <span className="text-xl md:mr-3">{item.icon}</span>
@@ -54,14 +53,17 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
 
       {/* Compose Button */}
       <div className="space-y-3">
-        <Button className="w-full bg-brand hover:bg-brand-600 text-black font-semibold rounded-lg py-3 transition-colors">
+        <Button 
+          onClick={() => onViewChange("create")}
+          className="w-full bg-[#00FFBD] hover:bg-[#00E5A8] text-black font-semibold rounded-lg py-3 transition-all shadow-[0_0_20px_rgba(0,255,189,0.3)] hover:shadow-[0_0_30px_rgba(0,255,189,0.5)]"
+        >
           <span className="md:hidden text-2xl">+</span>
-          <span className="hidden md:inline">+ Compose</span>
+          <span className="hidden md:inline">+ Create</span>
         </Button>
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="w-full border-border text-foreground hover:bg-card rounded-lg py-3 bg-transparent"
+          className="w-full border-gray-700 text-white hover:bg-gray-900 hover:border-gray-600 rounded-lg py-3 bg-transparent"
         >
           <span className="md:hidden text-xl">🚪</span>
           <span className="hidden md:inline">Logout</span>

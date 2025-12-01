@@ -4,7 +4,9 @@ import { useState, useEffect } from "react"
 import { Feed } from "@/components/layout/Feed"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { UserProfile } from "@/components/user/UserProfile"
+import { NavigationBar } from "@/components/ui/NavigationBar"
 import dynamic from 'next/dynamic'
+import { Users, DollarSign, PlusCircle } from "lucide-react"
 
 // Dynamically import the leaderboards page component
 const LeaderboardsView = dynamic(() => import('@/app/leaderboards/page'), { ssr: false })
@@ -13,10 +15,10 @@ interface MainAppProps {
   userId: string | null
 }
 
-type View = "feed" | "profile" | "explore" | "messages" | "leaderboards"
+type View = "home" | "communities" | "create" | "earnings" | "profile"
 
 export function MainApp({ userId }: MainAppProps) {
-  const [currentView, setCurrentView] = useState<View>("feed")
+  const [currentView, setCurrentView] = useState<View>("home")
   const [userProfile, setUserProfile] = useState<any>(null)
 
   useEffect(() => {
@@ -26,58 +28,71 @@ export function MainApp({ userId }: MainAppProps) {
     }
   }, [])
 
+  const handleNavigate = (view: View) => {
+    setCurrentView(view)
+  }
+
   return (
-    <div className="flex flex-col sm:flex-row h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col sm:flex-row h-screen bg-black text-white overflow-hidden">
       {/* Desktop Sidebar - Hidden on mobile */}
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+      <Sidebar currentView={currentView} onViewChange={(view) => setCurrentView(view as View)} />
 
       {/* Main Content - Full width on mobile, adjusted on desktop */}
-      <main className="flex-1 overflow-y-auto sm:border-l sm:border-r border-border pb-16 sm:pb-0">
-        {currentView === "feed" && <Feed userId={userId} profile={userProfile} />}
+      <main className="flex-1 overflow-y-auto sm:border-l sm:border-r border-gray-800 pb-16 sm:pb-0">
+        {currentView === "home" && <Feed userId={userId} profile={userProfile} />}
         {currentView === "profile" && <UserProfile profile={userProfile} setProfile={setUserProfile} />}
-        {currentView === "explore" && <ExploreView />}
-        {currentView === "leaderboards" && <LeaderboardsView />}
+        {currentView === "communities" && <CommunitiesView />}
+        {currentView === "create" && <CreateView />}
+        {currentView === "earnings" && <EarningsView />}
       </main>
 
       {/* Right Sidebar - Trending (Desktop only) */}
-      <aside className="hidden lg:block w-72 border-l border-border p-6 overflow-y-auto bg-background">
-        <h2 className="text-xl font-bold text-foreground mb-6">Trending</h2>
+      <aside className="hidden lg:block w-72 border-l border-gray-800 p-6 overflow-y-auto bg-black">
+        <h2 className="text-xl font-bold text-white mb-6">Trending</h2>
         <div className="space-y-4">
           {["Web3", "Verified Humans", "AI", "Decentralization", "Privacy"].map((tag) => (
             <div
               key={tag}
-              className="p-3 rounded-lg bg-card hover:bg-muted cursor-pointer transition border border-border"
+              className="p-3 rounded-lg bg-gray-900/50 hover:bg-gray-900 cursor-pointer transition border border-gray-800 hover:border-[#00FFBD]/30"
             >
-              <p className="text-sm text-muted-foreground">Trending Worldwide</p>
-              <p className="font-semibold text-foreground">#{tag}</p>
+              <p className="text-sm text-gray-400">Trending Worldwide</p>
+              <p className="font-semibold text-white">#{tag}</p>
             </div>
           ))}
         </div>
       </aside>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav currentView={currentView} onViewChange={setCurrentView} />
+      <NavigationBar 
+        active={currentView} 
+        onNavigate={handleNavigate}
+        className="sm:hidden"
+      />
     </div>
   )
 }
 
-function ExploreView() {
+function CommunitiesView() {
   return (
-    <div className="p-4 sm:p-6 max-w-3xl">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Explore Humanverse</h1>
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
+      <div className="flex items-center space-x-3 mb-6">
+        <Users className="w-8 h-8 text-[#00FFBD]" />
+        <h1 className="text-2xl sm:text-3xl font-bold">Communities</h1>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
-          { title: "Trending Posts", count: "1.2K" },
-          { title: "New Members", count: "342" },
-          { title: "Active Communities", count: "89" },
-          { title: "Global Conversations", count: "2.5K" },
-        ].map((item) => (
+          { title: "Web3 Builders", members: "1.2K", icon: "🏗️" },
+          { title: "Verified Humans", members: "5.4K", icon: "✅" },
+          { title: "AI & Technology", members: "3.2K", icon: "🤖" },
+          { title: "Privacy Advocates", members: "2.1K", icon: "🔒" },
+        ].map((community) => (
           <div
-            key={item.title}
-            className="p-6 rounded-xl bg-surface border border-border hover:border-accent transition"
+            key={community.title}
+            className="p-6 rounded-lg bg-gray-900/50 border border-gray-800 hover:border-[#00FFBD]/30 transition cursor-pointer"
           >
-            <p className="text-text-secondary text-sm mb-2">{item.title}</p>
-            <p className="text-3xl font-bold text-accent">{item.count}</p>
+            <div className="text-4xl mb-3">{community.icon}</div>
+            <p className="text-lg font-semibold text-white mb-1">{community.title}</p>
+            <p className="text-sm text-gray-400">{community.members} members</p>
           </div>
         ))}
       </div>
@@ -85,32 +100,68 @@ function ExploreView() {
   )
 }
 
-function MobileBottomNav({ currentView, onViewChange }: { currentView: View; onViewChange: (view: View) => void }) {
-  const navItems = [
-    { id: "feed", label: "Feed", icon: "📰" },
-    { id: "explore", label: "Explore", icon: "🔍" },
-    { id: "leaderboards", label: "Ranks", icon: "🏆" },
-    { id: "profile", label: "Profile", icon: "👤" },
-  ]
-
+function CreateView() {
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
-      <div className="flex justify-around items-center h-16 px-2">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onViewChange(item.id as View)}
-            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-              currentView === item.id
-                ? "text-brand"
-                : "text-muted-foreground"
-            }`}
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
+      <div className="flex items-center space-x-3 mb-6">
+        <PlusCircle className="w-8 h-8 text-[#00FFBD]" />
+        <h1 className="text-2xl sm:text-3xl font-bold">Create</h1>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[
+          { title: "New Post", description: "Share your thoughts", icon: "📝" },
+          { title: "Start Community", description: "Build your tribe", icon: "👥" },
+          { title: "Create Poll", description: "Get opinions", icon: "📊" },
+          { title: "Host Event", description: "Bring people together", icon: "📅" },
+        ].map((item) => (
+          <div
+            key={item.title}
+            className="p-6 rounded-lg bg-gray-900/50 border border-gray-800 hover:border-[#00FFBD]/30 transition cursor-pointer"
           >
-            <span className="text-2xl mb-1">{item.icon}</span>
-            <span className="text-xs">{item.label}</span>
-          </button>
+            <div className="text-4xl mb-3">{item.icon}</div>
+            <p className="text-lg font-semibold text-white mb-1">{item.title}</p>
+            <p className="text-sm text-gray-400">{item.description}</p>
+          </div>
         ))}
       </div>
-    </nav>
+    </div>
+  )
+}
+
+function EarningsView() {
+  return (
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
+      <div className="flex items-center space-x-3 mb-6">
+        <DollarSign className="w-8 h-8 text-[#00FFBD]" />
+        <h1 className="text-2xl sm:text-3xl font-bold">Earnings</h1>
+      </div>
+      
+      {/* Balance Card */}
+      <div className="p-6 rounded-lg bg-gradient-to-br from-[#00FFBD]/20 to-gray-900 border border-[#00FFBD]/30 mb-6">
+        <p className="text-sm text-gray-400 mb-2">Total Earnings</p>
+        <p className="text-4xl font-bold text-[#00FFBD] mb-4">$0.00</p>
+        <button className="bg-[#00FFBD] text-black px-6 py-2 rounded-lg font-semibold hover:bg-[#00E5A8] transition-all shadow-[0_0_20px_rgba(0,255,189,0.3)]">
+          Withdraw
+        </button>
+      </div>
+
+      {/* Earning Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          { title: "Posts Created", value: "0", icon: "📝" },
+          { title: "Engagement", value: "0", icon: "❤️" },
+          { title: "Referrals", value: "0", icon: "👥" },
+        ].map((stat) => (
+          <div
+            key={stat.title}
+            className="p-6 rounded-lg bg-gray-900/50 border border-gray-800"
+          >
+            <div className="text-3xl mb-3">{stat.icon}</div>
+            <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
+            <p className="text-sm text-gray-400">{stat.title}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

@@ -10,6 +10,8 @@ import EditProfileModal from '@/components/EditProfileModal';
 import { RankBadge } from '@/components/gamification/RankBadge';
 import { RankProgress } from '@/components/gamification/RankProgress';
 import { TagsDisplay } from '@/components/gamification/TagsDisplay';
+import { AvatarInitial } from '@/components/ui/AvatarInitial';
+import { ArrowLeft } from 'lucide-react';
 
 interface ProfileProps {
   userId: string;
@@ -404,10 +406,10 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-brand border-t-transparent mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#00FFBD] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading profile...</p>
         </div>
       </div>
     );
@@ -417,10 +419,10 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
   if (!profileUser) {
     console.log('Profile component: profileUser still null after useEffect');
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-brand border-t-transparent mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#00FFBD] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading profile...</p>
         </div>
       </div>
     );
@@ -429,84 +431,73 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
   const isOwnProfile = currentUser?.id === userId;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => router.push('/')}
-                className="p-2 rounded-full hover:bg-muted text-foreground"
-              >
-                ←
-              </button>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">
-                  {profileUser.displayName || profileUser.username}
-                </h1>
-                <p className="text-sm text-muted-foreground">{userStats.tweetsCount} tweets</p>
-              </div>
+      <header className="sticky top-0 z-50 bg-black border-b border-gray-800 shadow-lg">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => router.push('/')}
+              className="p-2 rounded-full hover:bg-gray-900 text-white transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                {profileUser.displayName || profileUser.username}
+              </h1>
+              <p className="text-sm text-gray-400">{userStats.tweetsCount} tweets</p>
             </div>
-            
-            {/* Edit Profile / Follow/Unfollow Button */}
-            {currentUser && (
-              isOwnProfile ? (
-                <button
-                  onClick={() => setShowEditModal(true)}
-                  className="px-4 py-2 rounded-full font-semibold text-sm transition-colors border-2 border-brand text-brand hover:bg-brand hover:text-black"
-                >
-                  Edit Profile
-                </button>
-              ) : (
-                <button
-                  onClick={handleFollowToggle}
-                  disabled={followLoading}
-                  className={`px-4 py-2 rounded-full font-semibold text-sm transition-colors ${
-                    isFollowing
-                      ? 'bg-secondary text-secondary-foreground hover:bg-destructive hover:text-destructive-foreground'
-                      : 'bg-brand text-black hover:bg-brand-600'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {followLoading ? '...' : isFollowing ? 'Unfollow' : 'Follow'}
-                </button>
-              )
-            )}
           </div>
+          
+          {/* Edit Profile / Follow/Unfollow Button */}
+          {currentUser && (
+            isOwnProfile ? (
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="px-4 py-2 rounded-lg font-semibold text-sm transition-all border-2 border-[#00FFBD] text-[#00FFBD] hover:bg-[#00FFBD] hover:text-black"
+              >
+                Edit Profile
+              </button>
+            ) : (
+              <button
+                onClick={handleFollowToggle}
+                disabled={followLoading}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  isFollowing
+                    ? 'bg-gray-800 text-white hover:bg-red-500/20 hover:text-red-500 hover:border-red-500 border border-gray-700'
+                    : 'bg-[#00FFBD] text-black hover:bg-[#00E5A8] shadow-[0_0_20px_rgba(0,255,189,0.3)]'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {followLoading ? '...' : isFollowing ? 'Unfollow' : 'Follow'}
+              </button>
+            )
+          )}
+        </div>
       </header>
 
       <main className="w-full sm:max-w-2xl sm:mx-auto">
         {/* Profile Info */}
-        <div className="bg-card">
-          {/* Cover Photo */}
-          <div className="h-32 sm:h-48 bg-gradient-to-r from-brand-900 to-brand-700"></div>
+        <div className="bg-black">
+          {/* Cover Photo - Gradient with cyan accent */}
+          <div className="h-32 sm:h-48 bg-gradient-to-r from-gray-900 via-black to-[#00FFBD]/20 border-b border-gray-800"></div>
           
           {/* Profile Details */}
           <div className="px-3 sm:px-4 pb-4">
             {/* Avatar */}
             <div className="relative -mt-12 sm:-mt-16 mb-3 sm:mb-4">
-              <div 
-                className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-background flex items-center justify-center text-3xl sm:text-4xl font-bold overflow-hidden"
-                style={{
-                  backgroundColor: profileUser.profilePictureUrl || profileUser.avatar ? 'transparent' : '#000000',
-                  color: '#FFFFFF',
-                  border: profileUser.profilePictureUrl || profileUser.avatar ? '4px solid hsl(var(--background))' : '4px solid #A2A2A2'
-                }}
-              >
-                {profileUser.profilePictureUrl || profileUser.avatar ? (
-                  <img
-                    src={profileUser.profilePictureUrl || profileUser.avatar}
-                    alt={profileUser.displayName || profileUser.username}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  (profileUser.displayName || profileUser.username || 'U').charAt(0).toUpperCase()
-                )}
-              </div>
+              <AvatarInitial 
+                name={profileUser.displayName || profileUser.username || 'U'}
+                imageUrl={profileUser.profilePictureUrl || profileUser.avatar}
+                size="xl"
+                className="border-4 border-black"
+              />
             </div>
 
             {/* Name and Verification */}
             <div className="mb-3 sm:mb-4">
               <div className="flex items-center space-x-2 mb-1">
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+                <h1 className="text-xl sm:text-2xl font-bold text-white">
                   {profileUser.displayName || profileUser.username}
                 </h1>
                 <VerifiedBadge 
@@ -515,13 +506,13 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
                   size="md"
                 />
               </div>
-              <p className="text-sm sm:text-base text-muted-foreground">@{profileUser.username}</p>
+              <p className="text-sm sm:text-base text-gray-400">@{profileUser.username}</p>
             </div>
 
             {/* Bio */}
             {profileUser.bio && (
               <div className="mb-3 sm:mb-4">
-                <p className="text-sm sm:text-base text-foreground">{profileUser.bio}</p>
+                <p className="text-sm sm:text-base text-gray-300">{profileUser.bio}</p>
               </div>
             )}
 
@@ -569,7 +560,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
 
             {/* Join Date */}
             <div className="mb-4">
-              <p className="text-muted-foreground text-sm">
+              <p className="text-gray-400 text-sm">
                 📅 Joined {profileUser.createdAt ? new Date(profileUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'recently'}
               </p>
             </div>
@@ -577,60 +568,60 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
             {/* Stats */}
             <div className="flex space-x-6 mb-4">
               <div>
-                <span className="font-bold text-foreground">{userStats.followingCount}</span>
-                <span className="text-muted-foreground ml-1">Following</span>
+                <span className="font-bold text-white">{userStats.followingCount}</span>
+                <span className="text-gray-400 ml-1">Following</span>
               </div>
               <div>
-                <span className="font-bold text-foreground">{userStats.followersCount}</span>
-                <span className="text-muted-foreground ml-1">Followers</span>
+                <span className="font-bold text-white">{userStats.followersCount}</span>
+                <span className="text-gray-400 ml-1">Followers</span>
               </div>
               <div>
-                <span className="font-bold text-foreground">{userStats.likesCount}</span>
-                <span className="text-muted-foreground ml-1">Likes</span>
+                <span className="font-bold text-white">{userStats.likesCount}</span>
+                <span className="text-gray-400 ml-1">Likes</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-card border-b border-border sticky top-16 z-40">
+        <div className="bg-black border-b border-gray-800 sticky top-16 z-40">
           <div className="flex">
             <button
               onClick={() => setActiveTab('tweets')}
-              className={`flex-1 py-4 text-center transition-colors ${
+              className={`flex-1 py-4 text-center transition-colors text-sm font-medium ${
                 activeTab === 'tweets'
-                  ? 'text-brand border-b-2 border-brand font-semibold'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-[#00FFBD] border-b-2 border-[#00FFBD]'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               Tweets ({userStats.tweetsCount})
             </button>
             <button
               onClick={() => setActiveTab('likes')}
-              className={`flex-1 py-4 text-center transition-colors ${
+              className={`flex-1 py-4 text-center transition-colors text-sm font-medium ${
                 activeTab === 'likes'
-                  ? 'text-brand border-b-2 border-brand font-semibold'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-[#00FFBD] border-b-2 border-[#00FFBD]'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               Likes ({userStats.likesCount})
             </button>
             <button
               onClick={() => setActiveTab('retweets')}
-              className={`flex-1 py-4 text-center transition-colors ${
+              className={`flex-1 py-4 text-center transition-colors text-sm font-medium ${
                 activeTab === 'retweets'
-                  ? 'text-brand border-b-2 border-brand font-semibold'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-[#00FFBD] border-b-2 border-[#00FFBD]'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               Retweets ({userStats.retweetsCount})
             </button>
             <button
               onClick={() => setActiveTab('comments')}
-              className={`flex-1 py-4 text-center transition-colors ${
+              className={`flex-1 py-4 text-center transition-colors text-sm font-medium ${
                 activeTab === 'comments'
-                  ? 'text-brand border-b-2 border-brand font-semibold'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-[#00FFBD] border-b-2 border-[#00FFBD]'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               Comments ({userStats.commentsCount})
@@ -639,10 +630,10 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
         </div>
 
         {/* Tweet Feed */}
-        <div className="bg-background min-h-screen">
+        <div className="bg-black min-h-screen">
           {getDisplayTweets().length === 0 ? (
-            <div className="bg-card p-8 text-center">
-              <p className="text-muted-foreground">
+            <div className="bg-black p-8 text-center border-b border-gray-800">
+              <p className="text-gray-400">
                 {activeTab === 'tweets' && 'No tweets yet'}
                 {activeTab === 'likes' && 'No liked tweets'}
                 {activeTab === 'retweets' && 'No retweets'}
@@ -652,7 +643,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
           ) : (
             <div className="space-y-0">
               {getDisplayTweets().map((tweet) => (
-                <div key={tweet.id} className="border-b border-border last:border-b-0">
+                <div key={tweet.id} className="border-b border-gray-800 last:border-b-0">
                   <TweetCard tweet={tweet} />
                 </div>
               ))}

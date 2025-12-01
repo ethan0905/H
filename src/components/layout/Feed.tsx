@@ -36,30 +36,30 @@ export function Feed({ userId, profile }: FeedProps) {
   };
 
   return (
-    <div className="w-full sm:max-w-2xl sm:mx-auto sm:border-l sm:border-r border-border">
+    <div className="w-full sm:max-w-2xl sm:mx-auto sm:border-l sm:border-r border-gray-800">
       {/* Header */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur z-10 border-b border-border px-4 py-3 sm:p-4">
-        <h2 className="text-lg sm:text-xl font-bold text-foreground">Your Feed</h2>
+      <div className="sticky top-0 bg-black/95 backdrop-blur z-10 border-b border-gray-800 px-4 py-3 sm:p-4">
+        <h2 className="text-lg sm:text-xl font-bold text-white">Your Feed</h2>
       </div>
 
       {/* Compose Tweet */}
-      <div className="border-b border-border">
+      <div className="border-b border-gray-800">
         <ComposeTweet />
       </div>
 
       {/* Feed */}
-      <div className="divide-y divide-border">
+      <div className="divide-y divide-gray-800">
         {loading && tweets.length === 0 ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="p-6 animate-pulse">
                 <div className="flex space-x-3">
-                  <div className="w-12 h-12 bg-muted rounded-full"></div>
+                  <div className="w-12 h-12 bg-gray-800 rounded-full"></div>
                   <div className="flex-1">
-                    <div className="h-4 bg-muted rounded w-1/4 mb-2"></div>
+                    <div className="h-4 bg-gray-800 rounded w-1/4 mb-2"></div>
                     <div className="space-y-2">
-                      <div className="h-4 bg-muted rounded"></div>
-                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-800 rounded"></div>
+                      <div className="h-4 bg-gray-800 rounded w-3/4"></div>
                     </div>
                   </div>
                 </div>
@@ -68,14 +68,14 @@ export function Feed({ userId, profile }: FeedProps) {
           </div>
         ) : error ? (
           <div className="p-6 text-center">
-            <div className="text-destructive mb-2">⚠️</div>
-            <h3 className="text-lg font-semibold text-destructive-foreground mb-2">
+            <div className="text-red-500 mb-2">⚠️</div>
+            <h3 className="text-lg font-semibold text-white mb-2">
               Failed to Load Tweets
             </h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
+            <p className="text-gray-400 mb-4">{error}</p>
             <button
               onClick={() => fetchTweets()}
-              className="bg-destructive text-destructive-foreground px-4 py-2 rounded-lg hover:bg-destructive/90 transition-colors"
+              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
             >
               Try Again
             </button>
@@ -83,10 +83,10 @@ export function Feed({ userId, profile }: FeedProps) {
         ) : tweets.length === 0 ? (
           <div className="p-12 text-center">
             <div className="text-6xl mb-4">🌟</div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
+            <h3 className="text-xl font-semibold text-white mb-2">
               Welcome to World Social!
             </h3>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-gray-400 mb-6">
               Be the first to share your thoughts with the world.
             </p>
           </div>
@@ -102,7 +102,7 @@ export function Feed({ userId, profile }: FeedProps) {
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoadingMore}
-                  className="bg-primary text-primary-foreground px-6 py-3 rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="bg-[#00FFBD] text-black px-6 py-3 rounded-lg hover:bg-[#00E5A8] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold shadow-[0_0_20px_rgba(0,255,189,0.3)] hover:shadow-[0_0_30px_rgba(0,255,189,0.5)]"
                 >
                   {isLoadingMore ? 'Loading...' : 'Load More Tweets'}
                 </button>

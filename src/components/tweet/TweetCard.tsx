@@ -1,12 +1,13 @@
 'use client';
 
-import { Heart, MessageCircle, Repeat2, Share, MoreHorizontal, Send } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2, Share, MoreHorizontal, Send, Eye, Coins } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tweet, Comment } from '@/types';
 import { useTweetStore } from '@/store/tweetStore';
 import { useUserStore } from '@/store/userStore';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
+import { AvatarInitial } from '@/components/ui/AvatarInitial';
 
 interface TweetCardProps {
   tweet: Tweet;
@@ -134,43 +135,30 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   };
 
   return (
-    <div className="p-3 sm:p-4 hover:bg-card transition cursor-pointer border-b border-border">
-      <div className="flex space-x-2 sm:space-x-3">
+    <div className="p-4 hover:bg-white/[0.02] transition-all duration-200 border-b border-white/10 group">
+      <div className="flex space-x-3">
         {/* User Avatar */}
         <div className="flex-shrink-0">
-          <div 
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full cursor-pointer overflow-hidden border-2" 
+          <button 
             onClick={() => handleProfileClick(tweet.author.id)}
-            style={{ borderColor: '#A2A2A2' }}
+            className="transition-transform hover:scale-105"
           >
-            {tweet.author.profilePictureUrl ? (
-              <img
-                src={tweet.author.profilePictureUrl}
-                alt={`${tweet.author.username}'s avatar`}
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              <div 
-                className="w-full h-full flex items-center justify-center font-semibold text-lg rounded-full" 
-                style={{ 
-                  backgroundColor: '#000000', 
-                  color: '#FFFFFF',
-                  border: '2px solid #A2A2A2'
-                }}
-              >
-                {(tweet.author.displayName || tweet.author.username || 'U').charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
+            <AvatarInitial
+              name={tweet.author.displayName || tweet.author.username || 'User'}
+              imageUrl={tweet.author.profilePictureUrl}
+              size="md"
+              className="cursor-pointer"
+            />
+          </button>
         </div>
 
         {/* Tweet Content */}
         <div className="flex-1 min-w-0">
           {/* Header */}
-          <div className="flex items-center space-x-1 sm:space-x-2 mb-1 sm:mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <button 
               onClick={() => handleProfileClick(tweet.author.id)}
-              className="font-semibold text-sm sm:text-base text-foreground truncate hover:underline text-left"
+              className="font-semibold text-white hover:text-[#00FFBD] transition-colors"
             >
               {tweet.author.displayName || tweet.author.username}
             </button>
@@ -181,40 +169,34 @@ export default function TweetCard({ tweet }: TweetCardProps) {
             />
             <button 
               onClick={() => handleProfileClick(tweet.author.id)}
-              className="text-muted-foreground text-xs sm:text-sm hover:underline"
+              className="text-gray-500 text-sm hover:text-gray-400 transition-colors"
             >
               @{tweet.author.username}
             </button>
-            <span className="text-muted-foreground text-xs sm:text-sm">·</span>
-            <span className="text-muted-foreground text-xs sm:text-sm">
+            <span className="text-gray-600">·</span>
+            <span className="text-gray-500 text-sm">
               {formatTime(tweet.createdAt)}
             </span>
-            <div className="ml-auto flex items-center space-x-1">
-              <button
-                onClick={() => handleProfileClick(tweet.author.id)}
-                className="hidden sm:block px-2 py-1 text-xs bg-muted hover:bg-accent rounded-full text-muted-foreground transition-colors"
-              >
-                Profile
-              </button>
+            <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={() => setShowActions(!showActions)}
-                className="p-1 rounded-full hover:bg-muted text-muted-foreground"
+                className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-gray-400 transition-all opacity-0 group-hover:opacity-100"
               >
-                <MoreHorizontal size={14} className="sm:w-4 sm:h-4" />
+                <MoreHorizontal size={18} />
               </button>
             </div>
           </div>
 
           {/* Content */}
-          <div className="mb-2 sm:mb-3">
-            <p className="text-sm sm:text-base text-foreground whitespace-pre-wrap">
+          <div className="mb-3">
+            <p className="text-gray-100 leading-relaxed whitespace-pre-wrap">
               {tweet.content}
             </p>
           </div>
 
           {/* Media */}
           {tweet.media && tweet.media.length > 0 && (
-            <div className="mb-3 rounded-lg overflow-hidden border border-border">
+            <div className="mb-3 rounded-xl overflow-hidden border border-white/10">
               {tweet.media.map((item) => (
                 <div key={item.id}>
                   {item.type === 'image' ? (
@@ -235,147 +217,147 @@ export default function TweetCard({ tweet }: TweetCardProps) {
             </div>
           )}
 
+          {/* Stats Row - Views & Earnings */}
+          {(tweet.views || tweet.earnings) && (
+            <div className="flex items-center gap-4 mb-3 text-sm text-gray-500">
+              {tweet.views && (
+                <div className="flex items-center gap-1.5">
+                  <Eye size={16} />
+                  <span>{tweet.views.toLocaleString()}</span>
+                </div>
+              )}
+              {tweet.earnings && (
+                <div className="flex items-center gap-1.5 text-[#00FFBD]">
+                  <Coins size={16} />
+                  <span>{tweet.earnings.toFixed(2)} H</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Action Buttons */}
-          <div className="flex items-center space-x-4 sm:space-x-8 text-muted-foreground">
+          <div className="flex items-center gap-6 text-gray-500">
             <button
               onClick={handleToggleComments}
-              className={`flex items-center space-x-1 sm:space-x-2 hover:text-accent transition-colors ${
-                showComments ? 'text-accent' : ''
+              className={`flex items-center gap-2 hover:text-[#00FFBD] transition-all group/btn ${
+                showComments ? 'text-[#00FFBD]' : ''
               }`}
             >
-              <MessageCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
-              <span className="text-xs sm:text-sm">{showComments ? comments.length : tweet.replies}</span>
+              <div className="p-2 rounded-full group-hover/btn:bg-[#00FFBD]/10 transition-colors">
+                <MessageCircle size={18} />
+              </div>
+              <span className="text-sm font-medium">{showComments ? comments.length : tweet.replies}</span>
             </button>
 
             <button
               onClick={handleRetweet}
-              className={`flex items-center space-x-1 sm:space-x-2 hover:text-green-500 transition-colors ${
-                tweet.isRetweeted ? 'text-green-500' : ''
+              className={`flex items-center gap-2 hover:text-green-400 transition-all group/btn ${
+                tweet.isRetweeted ? 'text-green-400' : ''
               }`}
             >
-              <Repeat2 size={16} className="sm:w-[18px] sm:h-[18px]" />
-              <span className="text-xs sm:text-sm">{tweet.retweets}</span>
+              <div className="p-2 rounded-full group-hover/btn:bg-green-400/10 transition-colors">
+                <Repeat2 size={18} />
+              </div>
+              <span className="text-sm font-medium">{tweet.retweets}</span>
             </button>
 
             <button
               onClick={handleLike}
-              className={`flex items-center space-x-1 sm:space-x-2 hover:text-[#FF0000] transition-colors ${
-                tweet.isLiked ? 'text-[#FF0000]' : ''
+              className={`flex items-center gap-2 hover:text-red-500 transition-all group/btn ${
+                tweet.isLiked ? 'text-red-500' : ''
               }`}
             >
-              <Heart size={16} className="sm:w-[18px] sm:h-[18px]" fill={tweet.isLiked ? 'currentColor' : 'none'} />
-              <span className="text-xs sm:text-sm">{tweet.likes}</span>
+              <div className="p-2 rounded-full group-hover/btn:bg-red-500/10 transition-colors">
+                <Heart 
+                  size={18} 
+                  fill={tweet.isLiked ? 'currentColor' : 'none'}
+                  className={tweet.isLiked ? 'animate-pulse' : ''}
+                />
+              </div>
+              <span className="text-sm font-medium">{tweet.likes}</span>
             </button>
 
             <button
               onClick={handleShare}
-              className="flex items-center space-x-1 sm:space-x-2 hover:text-accent transition-colors"
+              className="flex items-center gap-2 hover:text-blue-400 transition-all group/btn ml-auto"
             >
-              <Share size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <div className="p-2 rounded-full group-hover/btn:bg-blue-400/10 transition-colors">
+                <Share size={18} />
+              </div>
             </button>
           </div>
 
           {/* Comments Section */}
           {showComments && (
-            <div className="mt-4 border-t border-border pt-4">
+            <div className="mt-4 border-t border-white/10 pt-4 space-y-4">
               {/* Comment Form */}
               {user && (
-                <form onSubmit={handleCommentSubmit} className="mb-4">
-                  <div className="flex space-x-3">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold overflow-hidden"
-                      style={{
-                        backgroundColor: '#000000',
-                        color: '#FFFFFF',
-                        border: '2px solid #A2A2A2'
-                      }}
+                <form onSubmit={handleCommentSubmit} className="flex gap-3">
+                  <AvatarInitial
+                    name={user.displayName || user.username || 'User'}
+                    imageUrl={user.profilePictureUrl || user.avatar}
+                    size="sm"
+                  />
+                  <div className="flex-1 flex gap-2">
+                    <input
+                      type="text"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="flex-1 px-4 py-2.5 border border-white/10 rounded-full focus:outline-none focus:ring-2 focus:ring-[#00FFBD] focus:border-transparent bg-white/5 text-white placeholder:text-gray-500 transition-all"
+                      maxLength={280}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!commentText.trim() || commentSubmitting}
+                      className="px-5 py-2.5 bg-[#00FFBD] hover:bg-[#00D9A0] text-black font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all min-w-[44px]"
                     >
-                      {user.profilePictureUrl || user.avatar ? (
-                        <img
-                          src={user.profilePictureUrl || user.avatar}
-                          alt={user.displayName || user.username}
-                          className="w-full h-full object-cover"
-                        />
+                      {commentSubmitting ? (
+                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                       ) : (
-                        (user.displayName || user.username || 'U').charAt(0).toUpperCase()
+                        <Send size={16} />
                       )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex">
-                        <input
-                          type="text"
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          placeholder="Write a comment..."
-                          className="flex-1 px-3 py-2 border border-border rounded-l-full focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent bg-background text-foreground"
-                          maxLength={280}
-                        />
-                        <button
-                          type="submit"
-                          disabled={!commentText.trim() || commentSubmitting}
-                          className="px-4 py-2 bg-brand hover:bg-brand-600 text-black font-semibold rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                        >
-                          {commentSubmitting ? (
-                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <Send size={16} />
-                          )}
-                        </button>
-                      </div>
-                    </div>
+                    </button>
                   </div>
                 </form>
               )}
 
               {/* Comments List */}
               {commentsLoading ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-accent border-t-transparent mx-auto"></div>
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#00FFBD] border-t-transparent mx-auto"></div>
                 </div>
               ) : comments.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {comments.map((comment) => (
-                    <div key={comment.id} className="flex space-x-3">
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold overflow-hidden"
-                        style={{
-                          backgroundColor: '#000000',
-                          color: '#FFFFFF',
-                          border: '2px solid #A2A2A2'
-                        }}
-                      >
-                        {comment.author.profilePictureUrl || comment.author.avatar ? (
-                          <img
-                            src={comment.author.profilePictureUrl || comment.author.avatar}
-                            alt={comment.author.displayName || comment.author.username}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          (comment.author.displayName || comment.author.username || 'U').charAt(0).toUpperCase()
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="bg-card rounded-lg px-3 py-2 border border-border">
-                          <div className="flex items-center space-x-2 mb-1">
+                    <div key={comment.id} className="flex gap-3 group/comment">
+                      <AvatarInitial
+                        name={comment.author.displayName || comment.author.username || 'User'}
+                        imageUrl={comment.author.profilePictureUrl || comment.author.avatar}
+                        size="sm"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="bg-white/5 rounded-2xl px-4 py-3 border border-white/5 hover:border-white/10 transition-all">
+                          <div className="flex items-center gap-2 mb-1.5">
                             <button
                               onClick={() => router.push(`/profile/${comment.author.id}`)}
-                              className="font-semibold text-foreground hover:underline"
+                              className="font-semibold text-white hover:text-[#00FFBD] transition-colors text-sm"
                             >
                               {comment.author.displayName || comment.author.username}
                             </button>
                             <VerifiedBadge user={comment.author} size="sm" />
-                            <span className="text-muted-foreground text-xs">
+                            <span className="text-gray-500 text-xs">
                               {formatTime(comment.createdAt)}
                             </span>
                           </div>
-                          <p className="text-foreground text-sm">{comment.content}</p>
+                          <p className="text-gray-100 leading-relaxed">{comment.content}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-4">No comments yet. Be the first to comment!</p>
+                <p className="text-gray-500 text-center py-8 text-sm">No comments yet. Be the first to comment!</p>
               )}
             </div>
           )}

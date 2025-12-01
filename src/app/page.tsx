@@ -164,29 +164,29 @@ export default function HomePage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8 text-center">
           <div>
             <div className="mb-4 flex items-center justify-center">
-              <span className="text-6xl font-bold text-brand">H</span>
+              <span className="text-6xl font-bold text-[#00FFBD] glow-cyan">H</span>
             </div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">
+            <h1 className="text-4xl font-bold text-white mb-2">
               Welcome to H World
             </h1>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-zinc-400 mb-8">
               Connect with the world through verified identities and decentralized conversations.
             </p>
           </div>
           
-          <div className="bg-card p-8 rounded-2xl shadow-lg border border-border">
+          <div className="bg-zinc-950 p-8 rounded-2xl shadow-lg border border-zinc-800">
             <div className="mb-6">
-              <div className="w-16 h-16 bg-brand/10 border-2 border-brand rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl font-bold text-brand">H</span>
+              <div className="w-16 h-16 bg-black border-2 border-[#00FFBD] rounded-full mx-auto mb-4 flex items-center justify-center glow-cyan">
+                <span className="text-2xl font-bold text-[#00FFBD]">H</span>
               </div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">
+              <h2 className="text-xl font-semibold text-white mb-2">
                 Join the Conversation
               </h2>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-zinc-400 text-sm">
                 Authenticate with World ID or connect your wallet to get started.
               </p>
             </div>
@@ -198,10 +198,10 @@ export default function HomePage() {
               <>
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border"></div>
+                    <div className="w-full border-t border-zinc-800"></div>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or</span>
+                    <span className="bg-zinc-950 px-2 text-zinc-500">Or</span>
                   </div>
                 </div>
                 <button
@@ -210,17 +210,17 @@ export default function HomePage() {
                     // Render MainApp without authentication
                     window.location.href = '/?guest=true';
                   }}
-                  className="w-full py-3 px-4 border-2 border-border rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="w-full py-3 px-4 border-2 border-zinc-800 rounded-lg text-sm font-medium text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300 hover:border-zinc-700 transition-colors"
                 >
                   Continue as Guest (Dev Mode)
                 </button>
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-2 text-xs text-zinc-500">
                   Browse seeded data without authentication
                 </p>
               </>
             )}
             
-            <div className="mt-6 text-xs text-muted-foreground">
+            <div className="mt-6 text-xs text-zinc-500">
               <p>
                 By signing in, you agree to our Terms of Service and Privacy Policy.
               </p>

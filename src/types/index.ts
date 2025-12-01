@@ -32,6 +32,8 @@ export interface Tweet {
   updatedAt?: string;
   media?: MediaItem[];
   comments?: Comment[];
+  views?: number;
+  earnings?: number;
 }
 
 export interface MediaItem {
