@@ -1226,6 +1226,10 @@ video {
   --tw-border-opacity: 1;
   border-color: rgb(0 255 189 / var(--tw-border-opacity, 1));
 }
+.border-\[\#00FFBE\] {
+  --tw-border-opacity: 1;
+  border-color: rgb(0 255 190 / var(--tw-border-opacity, 1));
+}
 .border-amber-500\/20 {
   border-color: rgb(245 158 11 / 0.2);
 }

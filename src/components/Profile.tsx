@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Tweet } from '@/types';
 import { useUserStore } from '@/store/userStore';
-import VerifiedBadge from '@/components/ui/VerifiedBadge';
 import TweetCard from '@/components/tweet/TweetCard';
 import EditProfileModal from '@/components/EditProfileModal';
 import { RankBadge } from '@/components/gamification/RankBadge';
@@ -502,11 +501,6 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
                 <h1 className="text-xl sm:text-2xl font-bold text-white">
                   {profileUser.displayName || profileUser.username}
                 </h1>
-                <VerifiedBadge 
-                  user={profileUser} 
-                  worldIdVerification={isOwnProfile ? worldIdVerification : null}
-                  size="md"
-                />
               </div>
               <p className="text-sm text-gray-400">@{profileUser.username}</p>
             </div>

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Tweet, Comment } from '@/types';
 import { useTweetStore } from '@/store/tweetStore';
 import { useUserStore } from '@/store/userStore';
-import VerifiedBadge from '@/components/ui/VerifiedBadge';
 import { SeasonOneBadge } from '@/components/ui/SeasonOneBadge';
 import { AvatarInitial } from '@/components/ui/AvatarInitial';
 
@@ -162,11 +161,6 @@ export default function TweetCard({ tweet }: TweetCardProps) {
             >
               {tweet.author.displayName || tweet.author.username}
             </button>
-            <VerifiedBadge 
-              user={tweet.author} 
-              worldIdVerification={tweet.author.id === useUserStore.getState().user?.id ? worldIdVerification : null}
-              size="sm"
-            />
             {tweet.author.isSeasonOneOG && (
               <SeasonOneBadge size="sm" showLabel={false} />
             )}
@@ -316,7 +310,6 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                             >
                               {comment.author.displayName || comment.author.username}
                             </button>
-                            <VerifiedBadge user={comment.author} size="sm" />
                             {comment.author.isSeasonOneOG && (
                               <SeasonOneBadge size="sm" showLabel={false} />
                             )}
