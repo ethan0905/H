@@ -166,99 +166,75 @@ function CommunityPostCard({ post }: { post: any }) {
   }
 
   return (
-    <>
-      <div className="bg-black border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors">
-        <div className="flex items-start gap-3">
-          <AvatarInitial
-            name={post.author.displayName || post.author.username || 'User'}
-            imageUrl={post.author.profilePictureUrl}
-            size="md"
-          />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-semibold">{post.author.displayName || post.author.username}</span>
-              <span className="text-xs text-gray-500">{formatTime(post.createdAt)}</span>
-            </div>
-            <p className="text-sm text-gray-300 mb-3 whitespace-pre-wrap break-words">
-              {post.content}
-            </p>
-            <div className="flex items-center gap-4 text-gray-500">
-              <button 
-                onClick={handleToggleComments}
-                className="flex items-center gap-1 hover:text-[#00FFBD] transition-colors"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span className="text-xs">{showComments ? comments.length : (post.replies || 0)}</span>
-              </button>
-            </div>
+    <div className="bg-black border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors">
+      <div className="flex items-start gap-3">
+        <AvatarInitial
+          name={post.author.displayName || post.author.username || 'User'}
+          imageUrl={post.author.profilePictureUrl}
+          size="md"
+        />
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-semibold">{post.author.displayName || post.author.username}</span>
+            <span className="text-xs text-gray-500">{formatTime(post.createdAt)}</span>
           </div>
-        </div>
-      </div>
+          <p className="text-sm text-gray-300 mb-3 whitespace-pre-wrap break-words">
+            {post.content}
+          </p>
+          <div className="flex items-center gap-4 text-gray-500">
+            <button 
+              onClick={handleToggleComments}
+              className={`flex items-center gap-1 hover:text-[#00FFBD] transition-colors ${
+                showComments ? 'text-[#00FFBD]' : ''
+              }`}
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-xs">{showComments ? comments.length : (post.replies || 0)}</span>
+            </button>
+          </div>
 
-      {/* Comments Modal */}
-      {showComments && (
-        <div 
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm"
-          onClick={() => setShowComments(false)}
-        >
-          <div 
-            className="bg-black border border-gray-800 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-black border-b border-gray-800 px-4 sm:px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-lg sm:text-xl font-bold text-white">Comments</h3>
-              <button
-                onClick={() => setShowComments(false)}
-                className="p-2 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
-              >
-                <span className="text-2xl leading-none">×</span>
-              </button>
-            </div>
-
-            {/* Comments List - Scrollable */}
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+          {/* Comments Section - Inline */}
+          {showComments && (
+            <div className="mt-4 space-y-4 border-t border-gray-800 pt-4">
+              {/* Comments List */}
               {commentsLoading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#00FFBD] border-t-transparent mx-auto"></div>
+                <div className="text-center py-6">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#00FFBD] border-t-transparent mx-auto"></div>
                 </div>
               ) : comments.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3 max-h-96 overflow-y-auto">
                   {comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-3">
+                    <div key={comment.id} className="flex gap-2">
                       <AvatarInitial
                         name={comment.author.displayName || comment.author.username || 'User'}
                         imageUrl={comment.author.profilePictureUrl || comment.author.avatar}
                         size="sm"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="bg-gray-900 rounded-2xl px-3 sm:px-4 py-3 border border-gray-800">
-                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                            <span className="font-semibold text-white text-sm">
+                        <div className="bg-white/5 rounded-lg px-3 py-2 border border-white/5">
+                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                            <span className="font-semibold text-white text-xs">
                               {comment.author.displayName || comment.author.username}
                             </span>
                             <span className="text-gray-500 text-xs">
                               {formatTime(comment.createdAt)}
                             </span>
                           </div>
-                          <p className="text-gray-100 leading-relaxed text-sm sm:text-base break-words">{comment.content}</p>
+                          <p className="text-gray-200 text-sm leading-relaxed break-words">{comment.content}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <div className="text-5xl mb-4">💬</div>
+                <div className="text-center py-6">
                   <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
                 </div>
               )}
-            </div>
 
-            {/* Comment Form - Sticky at Bottom */}
-            {user && (
-              <div className="sticky bottom-0 bg-black border-t border-gray-800 px-4 sm:px-6 py-4">
-                <form onSubmit={handleCommentSubmit} className="flex gap-3">
+              {/* Comment Form */}
+              {user && (
+                <form onSubmit={handleCommentSubmit} className="flex gap-2 pt-2">
                   <AvatarInitial
                     name={user.displayName || user.username || 'User'}
                     imageUrl={user.profilePictureUrl || user.avatar}
@@ -271,29 +247,28 @@ function CommunityPostCard({ post }: { post: any }) {
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
                       placeholder="Write a comment..."
-                      className="flex-1 px-3 sm:px-4 py-2.5 border border-gray-800 rounded-full focus:outline-none focus:ring-2 focus:ring-[#00FFBD] focus:border-transparent bg-gray-900 text-white placeholder:text-gray-500 transition-all text-sm sm:text-base"
+                      className="flex-1 px-3 py-2 border border-gray-800 rounded-full focus:outline-none focus:ring-2 focus:ring-[#00FFBD] focus:border-transparent bg-gray-900 text-white placeholder:text-gray-500 transition-all text-sm"
                       maxLength={280}
-                      autoFocus
                     />
                     <button
                       type="submit"
                       disabled={!commentText.trim() || commentSubmitting}
-                      className="px-4 sm:px-5 py-2.5 bg-[#00FFBD] hover:bg-[#00D9A0] text-black font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all min-w-[44px]"
+                      className="px-4 py-2 bg-[#00FFBD] hover:bg-[#00D9A0] text-black font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
                     >
                       {commentSubmitting ? (
                         <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                       ) : (
-                        <Send size={16} />
+                        <Send size={14} />
                       )}
                     </button>
                   </div>
                 </form>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
-      )}
-    </>
+      </div>
+    </div>
   )
 }
 
@@ -1315,19 +1290,19 @@ function EarningsView() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-400">10 posts per day</span>
+                <span className="text-sm text-gray-400">Unlimited posts per day</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-400">280 characters per post</span>
+                <span className="text-sm text-gray-400">5 first posts monetized</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-400">120 characters per post</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
                 <span className="text-sm text-gray-400">20% withdrawal fees</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-400">Basic analytics</span>
               </li>
             </ul>
           </div>
@@ -1376,6 +1351,15 @@ function EarningsView() {
                 <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#00FFBD" }} />
                 <span className="text-sm">
                   <span className="font-semibold" style={{ color: "#00FFBD" }}>
+                    10x more revenue
+                  </span>{" "}
+                  per post
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#00FFBD" }} />
+                <span className="text-sm">
+                  <span className="font-semibold" style={{ color: "#00FFBD" }}>
                     Unlimited
                   </span>{" "}
                   content publishing
@@ -1385,9 +1369,18 @@ function EarningsView() {
                 <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#00FFBD" }} />
                 <span className="text-sm">
                   <span className="font-semibold" style={{ color: "#00FFBD" }}>
-                    1000 characters
+                    Unlimited
                   </span>{" "}
-                  per post
+                  monetization
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#00FFBD" }} />
+                <span className="text-sm">
+                  <span className="font-semibold" style={{ color: "#00FFBD" }}>
+                    Season 1 OG Human Badge
+                  </span>{" "}
+                  (unique, permanent)
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -1395,22 +1388,12 @@ function EarningsView() {
                 <span className="text-sm">
                   <span className="font-semibold" style={{ color: "#00FFBD" }}>
                     5% withdrawal fees
-                  </span>{" "}
-                  (75% savings)
+                  </span>
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#00FFBD" }} />
-                <span className="text-sm">
-                  <span className="font-semibold" style={{ color: "#00FFBD" }}>
-                    Season 1 Human Badge
-                  </span>{" "}
-                  (unique & permanent)
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#00FFBD" }} />
-                <span className="text-sm">Priority support & advanced analytics</span>
+                <span className="text-sm">Priority support and analytics</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#00FFBD" }} />
