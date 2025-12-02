@@ -1,11 +1,8 @@
 {
-  "/profile/[userId]/page": "app/profile/[userId]/page.js",
   "/page": "app/page.js",
-  "/api/verify-wallet-auth/route": "app/api/verify-wallet-auth/route.js",
+  "/profile/[userId]/page": "app/profile/[userId]/page.js",
   "/api/nonce/route": "app/api/nonce/route.js",
+  "/api/verify-wallet-auth/route": "app/api/verify-wallet-auth/route.js",
   "/api/subscriptions/status/route": "app/api/subscriptions/status/route.js",
-  "/api/communities/route": "app/api/communities/route.js",
-  "/api/tweets/route": "app/api/tweets/route.js",
-  "/api/communities/[communityId]/posts/route": "app/api/communities/[communityId]/posts/route.js",
-  "/api/communities/[communityId]/posts/[postId]/comments/route": "app/api/communities/[communityId]/posts/[postId]/comments/route.js"
+  "/api/tweets/route": "app/api/tweets/route.js"
 }

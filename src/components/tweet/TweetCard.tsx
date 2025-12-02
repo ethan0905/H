@@ -186,7 +186,7 @@ export default function TweetCard({ tweet }: TweetCardProps) {
 
           {/* Content */}
           <div className="mb-3">
-            <p className="text-gray-100 leading-relaxed whitespace-pre-wrap">
+            <p className="text-gray-100 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
               {tweet.content}
             </p>
           </div>
