@@ -991,16 +991,29 @@ function EarningsView() {
               userId: user.id,
               reference: paymentReference,
               transactionId: finalPayload.transaction_id,
+              walletAddress: user.walletAddress,
             }),
           })
           
           const verifyData = await verifyResponse.json()
           
           if (verifyResponse.ok && verifyData.success) {
-            console.log('✅ Payment verified on backend')
+            console.log('✅ Payment verified on backend:', verifyData)
+            
             // Update UI with Pro status
             setSubscriptionStatus('pro')
-            alert('🎉 Welcome to Pro!\n\nYour subscription is now active. Enjoy unlimited posts, lower fees, and exclusive features!')
+            
+            // Update user store with new status
+            if (verifyData.user) {
+              const { setUser } = useUserStore.getState()
+              setUser({
+                ...user,
+                isPro: true,
+                isSeasonOneOG: true,
+              })
+            }
+            
+            alert('🎉 Welcome to Pro!\n\n✨ Your subscription is now active!\n👑 Season 1 OG Human badge unlocked!\n\nEnjoy unlimited posts, lower fees, and exclusive features!')
           } else {
             throw new Error(verifyData.error || 'Payment verification failed')
           }

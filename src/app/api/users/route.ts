@@ -74,6 +74,8 @@ export async function GET(request: NextRequest) {
       avatar: user.avatar || undefined,
       profilePictureUrl: user.profilePictureUrl || undefined,
       isVerified: user.isVerified,
+      isPro: user.isPro,
+      isSeasonOneOG: user.isSeasonOneOG,
       createdAt: user.createdAt,
       stats: {
         tweetsCount: user._count.tweets,

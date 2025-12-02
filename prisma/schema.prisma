@@ -23,6 +23,7 @@ model User {
   profilePictureUrl     String?
   isVerified            Boolean   @default(false)
   isPro                 Boolean   @default(false) // Pro subscription status
+  isSeasonOneOG         Boolean   @default(false) // Season 1 OG Human badge
   verificationLevel     String?   // 'orb' or 'device'
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -288,6 +289,7 @@ model Subscription {
   userId                String    @unique
   plan                  String    // "free" or "pro"
   status                String    // "active", "cancelled", "expired"
+  walletAddress         String?   // Wallet address used for payment
   worldPaymentId        String?   // World Pay transaction ID
   startDate             DateTime  @default(now())
   endDate               DateTime?

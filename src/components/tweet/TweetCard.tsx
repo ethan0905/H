@@ -7,6 +7,7 @@ import { Tweet, Comment } from '@/types';
 import { useTweetStore } from '@/store/tweetStore';
 import { useUserStore } from '@/store/userStore';
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
+import { SeasonOneBadge } from '@/components/ui/SeasonOneBadge';
 import { AvatarInitial } from '@/components/ui/AvatarInitial';
 
 interface TweetCardProps {
@@ -155,8 +156,7 @@ export default function TweetCard({ tweet }: TweetCardProps) {
         {/* Tweet Content */}
         <div className="flex-1 min-w-0">
           {/* Header */}
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <button 
+          <div className="flex items-center gap-2 mb-2 flex-wrap">            <button
               onClick={() => handleProfileClick(tweet.author.id)}
               className="font-semibold text-white hover:text-[#00FFBD] transition-colors"
             >
@@ -167,6 +167,9 @@ export default function TweetCard({ tweet }: TweetCardProps) {
               worldIdVerification={tweet.author.id === useUserStore.getState().user?.id ? worldIdVerification : null}
               size="sm"
             />
+            {tweet.author.isSeasonOneOG && (
+              <SeasonOneBadge size="sm" showLabel={false} />
+            )}
             <button 
               onClick={() => handleProfileClick(tweet.author.id)}
               className="text-gray-500 text-sm hover:text-gray-400 transition-colors"
@@ -333,6 +336,9 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                                   {comment.author.displayName || comment.author.username}
                                 </button>
                                 <VerifiedBadge user={comment.author} size="sm" />
+                                {comment.author.isSeasonOneOG && (
+                                  <SeasonOneBadge size="sm" showLabel={false} />
+                                )}
                                 <span className="text-gray-500 text-xs">
                                   {formatTime(comment.createdAt)}
                                 </span>

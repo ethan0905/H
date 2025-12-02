@@ -21,10 +21,21 @@ export async function GET(req: NextRequest) {
       },
     })
 
+    // Get user data for Season One OG status
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        isSeasonOneOG: true,
+        isPro: true,
+      },
+    })
+
     return NextResponse.json({
       plan: subscription?.plan || 'free',
       status: subscription?.status || 'inactive',
       endDate: subscription?.endDate,
+      isSeasonOneOG: user?.isSeasonOneOG || false,
+      isPro: user?.isPro || false,
     })
   } catch (error) {
     console.error('Error fetching subscription status:', error)

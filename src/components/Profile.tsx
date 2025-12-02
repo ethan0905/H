@@ -11,6 +11,7 @@ import { RankBadge } from '@/components/gamification/RankBadge';
 import { RankProgress } from '@/components/gamification/RankProgress';
 import { TagsDisplay } from '@/components/gamification/TagsDisplay';
 import { AvatarInitial } from '@/components/ui/AvatarInitial';
+import { SeasonOneBadge } from '@/components/ui/SeasonOneBadge';
 import { ArrowLeft } from 'lucide-react';
 
 interface ProfileProps {
@@ -101,6 +102,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
               createdAt: userData.createdAt,
               worldcoinId: userData.worldcoinId,
               walletAddress: userData.walletAddress,
+              isSeasonOneOG: userData.isSeasonOneOG,
             });
             
             // Set user stats from API response
@@ -506,13 +508,20 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
                   size="md"
                 />
               </div>
-              <p className="text-sm sm:text-base text-gray-400">@{profileUser.username}</p>
+              <p className="text-sm text-gray-400">@{profileUser.username}</p>
             </div>
 
             {/* Bio */}
             {profileUser.bio && (
               <div className="mb-3 sm:mb-4">
                 <p className="text-sm sm:text-base text-gray-300">{profileUser.bio}</p>
+              </div>
+            )}
+
+            {/* Season 1 OG Badge */}
+            {profileUser.isSeasonOneOG && (
+              <div className="mb-4">
+                <SeasonOneBadge size="md" showLabel={true} />
               </div>
             )}
 

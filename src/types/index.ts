@@ -9,6 +9,8 @@ export interface User {
   profilePictureUrl?: string;
   isVerified?: boolean;
   verified?: boolean; // Alternative field name for compatibility
+  isPro?: boolean; // Pro subscription status
+  isSeasonOneOG?: boolean; // Season 1 OG Human badge
   createdAt?: Date;
   updatedAt?: Date;
   // World ID verification
