@@ -1302,9 +1302,15 @@ function EarningsView() {
                   $0<span className="text-sm text-gray-500">/mo</span>
                 </p>
               </div>
-              <button className="border-2 border-gray-700 hover:border-gray-600 bg-transparent rounded-full px-6 py-2 text-sm font-semibold transition-colors">
-                Current Plan
-              </button>
+              {subscriptionStatus === 'free' ? (
+                <button className="border-2 border-gray-700 hover:border-gray-600 bg-transparent rounded-full px-6 py-2 text-sm font-semibold transition-colors">
+                  Current Plan
+                </button>
+              ) : (
+                <div className="px-6 py-2 text-sm font-semibold text-gray-500">
+                  Basic Plan
+                </div>
+              )}
             </div>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
@@ -1342,8 +1348,17 @@ function EarningsView() {
                 </p>
               </div>
               {subscriptionStatus === 'pro' ? (
-                <button className="border-2 rounded-full px-6 py-2 text-sm font-semibold" style={{ borderColor: "#00FFBD", color: "#00FFBD" }}>
-                  Active
+                <button 
+                  onClick={() => {
+                    if (confirm('Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your billing period.')) {
+                      // TODO: Implement cancel subscription logic
+                      alert('Subscription cancellation will be implemented soon. Please contact support for now.')
+                    }
+                  }}
+                  className="border-2 rounded-full px-6 py-2 text-sm font-semibold hover:bg-red-500/10 transition-colors" 
+                  style={{ borderColor: "#ff4444", color: "#ff4444" }}
+                >
+                  Cancel Subscription
                 </button>
               ) : (
                 <button 
