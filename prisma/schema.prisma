@@ -13,6 +13,7 @@ datasource db {
 model User {
   id                    String    @id @default(cuid())
   worldcoinId           String?   @unique
+  worldId               String?   @unique // World ID verification identifier
   walletAddress         String?   @unique
   nullifierHash         String?   @unique // World ID nullifier hash
   username              String    @unique
@@ -21,6 +22,7 @@ model User {
   avatar                String?
   profilePictureUrl     String?
   isVerified            Boolean   @default(false)
+  isPro                 Boolean   @default(false) // Pro subscription status
   verificationLevel     String?   // 'orb' or 'device'
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -297,4 +299,21 @@ model Subscription {
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+model PaymentIntent {
+  id                    String    @id @default(cuid())
+  reference             String    @unique // UUID without hyphens
+  userId                String
+  amount                Float
+  description           String
+  status                String    @default("pending") // "pending", "success", "failed", "cancelled"
+  transactionId         String?   // Worldcoin transaction ID after payment
+  tokenUsed             String?   // "WLD" or "USDC"
+  tokenAmount           String?   // Amount in tokens
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  verifiedAt            DateTime? // When payment was verified on-chain
+
+  @@map("payment_intents")
 }

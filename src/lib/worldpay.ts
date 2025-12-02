@@ -39,17 +39,18 @@ export async function initiateWorldPayment(
     const { tokenToDecimals } = await import('@worldcoin/minikit-js')
 
     // Create payment command
+    // For testing: Fixed price of 0.01 WLD (ignoring USD amount)
     const payload: PayCommandInput = {
       reference: reference,
       to: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || '0x3ffd3381a60c3bd973acbe1c94076de85b3d1fc9', // Default recipient address
       tokens: [
         {
           symbol: Tokens.WLD,
-          token_amount: tokenToDecimals(amount / 2.5, Tokens.WLD).toString(), // Convert USD to WLD (assuming ~$2.50/WLD)
+          token_amount: tokenToDecimals(0.01, Tokens.WLD).toString(), // 0.01 WLD for testing
         },
         {
           symbol: Tokens.USDC,
-          token_amount: tokenToDecimals(amount, Tokens.USDC).toString(), // Convert USD to USDC (1:1)
+          token_amount: tokenToDecimals(0.01, Tokens.USDC).toString(), // 0.01 USDC for testing
         },
       ],
       description: description,

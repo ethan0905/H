@@ -923,69 +923,91 @@ function EarningsView() {
         return
       }
       
-      // Step 1: Generate unique payment reference
-      const paymentReference = crypto.randomUUID().replace(/-/g, '')
+      // Step 1: Create payment intent in database and get reference
+      let paymentReference: string
+      try {
+        const initiateResponse = await fetch('/api/payments/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            amount: 7.40,
+            description: 'H World Pro Subscription - Monthly',
+          }),
+        })
+        
+        if (!initiateResponse.ok) {
+          throw new Error('Failed to initiate payment')
+        }
+        
+        const initiateData = await initiateResponse.json()
+        paymentReference = initiateData.reference
+        
+        console.log('✅ Payment intent created:', {
+          reference: paymentReference,
+          amount: '7.40 USD',
+          to: '0x3ffd3381a60c3bd973acbe1c94076de85b3d1fc9'
+        })
+      } catch (initiateError) {
+        console.error('❌ Failed to create payment intent:', initiateError)
+        throw new Error('Failed to initiate payment. Please try again.')
+      }
       
-      console.log('💰 Initiating Pro subscription payment:', {
-        amount: '7.40 USD',
-        reference: paymentReference,
-        to: '0x3ffd3381a60c3bd973acbe1c94076de85b3d1fc9'
-      })
-      
-      // Step 2: Create payment command
-      // Convert $7.40 to token amounts
-      // For WLD: assuming ~$2.50 per WLD = 2.96 WLD
-      // For USDC: $7.40 = 7.40 USDC
+      // Step 3: Create payment command
+      // For testing: Fixed price of 0.01 WLD
       const payload = {
         reference: paymentReference,
         to: '0x3ffd3381a60c3bd973acbe1c94076de85b3d1fc9', // Your recipient address
         tokens: [
           {
             symbol: Tokens.WLD,
-            token_amount: tokenToDecimals(2.96, Tokens.WLD).toString(), // ~$7.40 worth of WLD
+            token_amount: tokenToDecimals(0.01, Tokens.WLD).toString(), // 0.01 WLD for testing
           },
           {
             symbol: Tokens.USDC,
-            token_amount: tokenToDecimals(7.40, Tokens.USDC).toString(), // $7.40 in USDC
+            token_amount: tokenToDecimals(0.01, Tokens.USDC).toString(), // 0.01 USDC for testing
           },
         ],
-        description: 'H World Pro Subscription - Monthly ($7.40)',
+        description: 'H World Pro Subscription - Monthly (Testing: 0.01 WLD)',
       }
       
       console.log('📤 Sending payment command:', payload)
       
-      // Step 3: Send payment command to MiniKit
+      // Step 4: Send payment command to MiniKit
       const { finalPayload } = await MiniKit.commandsAsync.pay(payload)
       
       console.log('📨 Payment response:', finalPayload)
       
-      // Step 4: Check payment status
+      // Step 5: Check payment status and verify on backend
       if (finalPayload.status === 'success') {
         console.log('✅ Payment successful! Transaction ID:', finalPayload.transaction_id)
         
-        // Step 5: Confirm payment on backend (optional - for your records)
+        // Step 6: Verify payment on backend
         try {
-          const confirmResponse = await fetch('/api/subscriptions/confirm', {
+          const verifyResponse = await fetch('/api/payments/verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               userId: user.id,
               reference: paymentReference,
               transactionId: finalPayload.transaction_id,
-              status: finalPayload.status,
             }),
           })
           
-          if (confirmResponse.ok) {
-            console.log('✅ Payment confirmed on backend')
+          const verifyData = await verifyResponse.json()
+          
+          if (verifyResponse.ok && verifyData.success) {
+            console.log('✅ Payment verified on backend')
+            // Update UI with Pro status
+            setSubscriptionStatus('pro')
+            alert('🎉 Welcome to Pro!\n\nYour subscription is now active. Enjoy unlimited posts, lower fees, and exclusive features!')
+          } else {
+            throw new Error(verifyData.error || 'Payment verification failed')
           }
-        } catch (confirmError) {
-          console.warn('⚠️ Backend confirmation failed (payment still successful):', confirmError)
+        } catch (verifyError) {
+          console.error('❌ Payment verification failed:', verifyError)
+          throw new Error('Payment completed but verification failed. Please contact support.')
         }
-        
-        // Step 6: Update UI
-        setSubscriptionStatus('pro')
-        alert('🎉 Welcome to Pro!\n\nYour subscription is now active. Enjoy unlimited posts, lower fees, and exclusive features!')
       } else {
         throw new Error(
           finalPayload.status === 'error' 
