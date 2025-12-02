@@ -114,7 +114,7 @@ function CommunityPostCard({ post }: { post: any }) {
     
     setCommentsLoading(true)
     try {
-      let url = `/api/tweets/${post.id}/comments`
+      let url = `/api/communities/${post.communityId}/posts/${post.id}/comments`
       if (user) {
         url += `?currentUserId=${encodeURIComponent(user.id)}`
       }
@@ -137,7 +137,7 @@ function CommunityPostCard({ post }: { post: any }) {
 
     setCommentSubmitting(true)
     try {
-      const response = await fetch(`/api/tweets/${post.id}/comments`, {
+      const response = await fetch(`/api/communities/${post.communityId}/posts/${post.id}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -722,7 +722,7 @@ function CreateView({ onPostCreated }: { onPostCreated?: () => void }) {
         <p className="text-sm text-gray-400 mb-3">Content Type</p>
         <div className="grid grid-cols-3 gap-3">
           <button
-            className={`flex flex-col items-center gap-2 h-20 rounded-lg border-2 transition-all ${
+            className={`flex flex-col items-center justify-center gap-2 h-20 rounded-lg border-2 transition-all ${
               selectedType === "text" 
                 ? "text-black border-[#00FFBD]" 
                 : "border-gray-800 hover:border-gray-600 bg-transparent"
@@ -734,7 +734,7 @@ function CreateView({ onPostCreated }: { onPostCreated?: () => void }) {
             <span className="text-xs font-semibold">Text</span>
           </button>
           <button
-            className={`flex flex-col items-center gap-2 h-20 rounded-lg border-2 transition-all ${
+            className={`flex flex-col items-center justify-center gap-2 h-20 rounded-lg border-2 transition-all ${
               selectedType === "image" 
                 ? "text-black border-[#00FFBD]" 
                 : "border-gray-800 hover:border-gray-600 bg-transparent"
@@ -746,7 +746,7 @@ function CreateView({ onPostCreated }: { onPostCreated?: () => void }) {
             <span className="text-xs font-semibold">Image</span>
           </button>
           <button
-            className={`flex flex-col items-center gap-2 h-20 rounded-lg border-2 transition-all ${
+            className={`flex flex-col items-center justify-center gap-2 h-20 rounded-lg border-2 transition-all ${
               selectedType === "video" 
                 ? "text-black border-[#00FFBD]" 
                 : "border-gray-800 hover:border-gray-600 bg-transparent"

@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Simple in-memory store for community posts (temporary solution)
-// In production, add communityId field to Tweet model or create CommunityPost table
-const communityPostsMap = new Map<string, string[]>();
-
 // GET /api/communities/[communityId]/posts - Get posts for a community
 export async function GET(
   request: NextRequest,
@@ -15,37 +11,17 @@ export async function GET(
     const userId = searchParams.get('userId');
     const communityId = params.communityId;
 
-    // Verify community exists
-    const community = await prisma.community.findUnique({
-      where: { id: communityId }
-    });
-
-    if (!community) {
+    if (!communityId) {
       return NextResponse.json(
-        { error: 'Community not found' },
-        { status: 404 }
+        { error: 'Community ID is required' },
+        { status: 400 }
       );
     }
 
-    // Get tweet IDs for this community
-    const tweetIds = communityPostsMap.get(communityId) || [];
-    
-    if (tweetIds.length === 0) {
-      return NextResponse.json({
-        posts: [],
-        hasMore: false,
-        community: {
-          id: community.id,
-          name: community.name,
-          description: community.description
-        }
-      });
-    }
-
-    // Fetch the actual tweets
-    const tweets = await prisma.tweet.findMany({
+    // Fetch community posts with author details
+    const posts = await prisma.communityPost.findMany({
       where: {
-        id: { in: tweetIds }
+        communityId: communityId,
       },
       include: {
         author: {
@@ -56,54 +32,41 @@ export async function GET(
             avatar: true,
             profilePictureUrl: true,
             isVerified: true,
-            verificationLevel: true,
-          }
+            isSeasonOneOG: true,
+          },
         },
         _count: {
           select: {
-            likes: true,
-            retweets: true,
             comments: true,
-          }
-        },
-        ...(userId && {
-          likes: {
-            where: { userId },
-            select: { id: true }
           },
-          retweets: {
-            where: { userId },
-            select: { id: true }
-          }
-        })
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: 'desc',
+      },
     });
 
-    // Transform to match expected format
-    const posts = tweets.map(tweet => ({
-      id: tweet.id,
-      content: tweet.content,
-      author: tweet.author,
-      createdAt: tweet.createdAt,
-      likes: tweet._count.likes,
-      retweets: tweet._count.retweets,
-      replies: tweet._count.comments,
-      isLiked: userId ? (tweet.likes?.length || 0) > 0 : false,
-      isRetweeted: userId ? (tweet.retweets?.length || 0) > 0 : false,
-      media: [],
+    // Transform posts to match frontend format
+    const transformedPosts = posts.map((post) => ({
+      id: post.id,
+      content: post.content,
+      createdAt: post.createdAt,
+      communityId: post.communityId,
+      replies: post._count.comments,
+      author: {
+        id: post.author.id,
+        username: post.author.username,
+        displayName: post.author.displayName,
+        avatar: post.author.avatar,
+        profilePictureUrl: post.author.profilePictureUrl,
+        isVerified: post.author.isVerified,
+        isSeasonOneOG: post.author.isSeasonOneOG,
+      },
     }));
 
     return NextResponse.json({
-      posts,
+      posts: transformedPosts,
       hasMore: false,
-      community: {
-        id: community.id,
-        name: community.name,
-        description: community.description
-      }
     });
   } catch (error) {
     console.error('Error fetching community posts:', error);
@@ -159,11 +122,12 @@ export async function POST(
       );
     }
 
-    // Create the tweet
-    const tweet = await prisma.tweet.create({
+    // Create the community post
+    const post = await prisma.communityPost.create({
       data: {
         content,
         authorId,
+        communityId,
       },
       include: {
         author: {
@@ -174,38 +138,36 @@ export async function POST(
             avatar: true,
             profilePictureUrl: true,
             isVerified: true,
-            verificationLevel: true,
-          }
+            isSeasonOneOG: true,
+          },
         },
         _count: {
           select: {
-            likes: true,
-            retweets: true,
             comments: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    // Store the mapping of this tweet to the community
-    const existingPosts = communityPostsMap.get(communityId) || [];
-    communityPostsMap.set(communityId, [tweet.id, ...existingPosts]);
-
-    // Transform to match expected format
-    const post = {
-      id: tweet.id,
-      content: tweet.content,
-      author: tweet.author,
-      createdAt: tweet.createdAt,
-      likes: tweet._count.likes,
-      retweets: tweet._count.retweets,
-      replies: tweet._count.comments,
-      isLiked: false,
-      isRetweeted: false,
-      media: [],
+    // Transform post to match frontend format
+    const transformedPost = {
+      id: post.id,
+      content: post.content,
+      createdAt: post.createdAt,
+      communityId: post.communityId,
+      replies: post._count.comments,
+      author: {
+        id: post.author.id,
+        username: post.author.username,
+        displayName: post.author.displayName,
+        avatar: post.author.avatar,
+        profilePictureUrl: post.author.profilePictureUrl,
+        isVerified: post.author.isVerified,
+        isSeasonOneOG: post.author.isSeasonOneOG,
+      },
     };
 
-    return NextResponse.json({ post });
+    return NextResponse.json({ post: transformedPost });
   } catch (error) {
     console.error('Error creating community post:', error);
     return NextResponse.json(
