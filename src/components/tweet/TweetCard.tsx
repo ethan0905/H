@@ -290,109 +290,84 @@ export default function TweetCard({ tweet }: TweetCardProps) {
             </button>
           </div>
 
-          {/* Comments Modal */}
+          {/* Comments Section - Inline */}
           {showComments && (
-            <div 
-              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm"
-              onClick={() => setShowComments(false)}
-            >
-              <div 
-                className="bg-black border border-white/10 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Modal Header */}
-                <div className="sticky top-0 bg-black border-b border-white/10 px-4 sm:px-6 py-4 flex items-center justify-between z-10">
-                  <h3 className="text-lg sm:text-xl font-bold text-white">Comments</h3>
-                  <button
-                    onClick={() => setShowComments(false)}
-                    className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                  >
-                    <span className="text-2xl leading-none">×</span>
-                  </button>
+            <div className="mt-4 space-y-4 border-t border-white/10 pt-4">
+              {/* Comments List */}
+              {commentsLoading ? (
+                <div className="text-center py-6">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#00FFBD] border-t-transparent mx-auto"></div>
                 </div>
-
-                {/* Comments List - Scrollable */}
-                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-                  {commentsLoading ? (
-                    <div className="text-center py-12">
-                      <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#00FFBD] border-t-transparent mx-auto"></div>
-                    </div>
-                  ) : comments.length > 0 ? (
-                    <div className="space-y-4">
-                      {comments.map((comment) => (
-                        <div key={comment.id} className="flex gap-3 group/comment">
-                          <AvatarInitial
-                            name={comment.author.displayName || comment.author.username || 'User'}
-                            imageUrl={comment.author.profilePictureUrl || comment.author.avatar}
-                            size="sm"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="bg-white/5 rounded-2xl px-3 sm:px-4 py-3 border border-white/5 hover:border-white/10 transition-all">
-                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                <button
-                                  onClick={() => router.push(`/profile/${comment.author.id}`)}
-                                  className="font-semibold text-white hover:text-[#00FFBD] transition-colors text-sm"
-                                >
-                                  {comment.author.displayName || comment.author.username}
-                                </button>
-                                <VerifiedBadge user={comment.author} size="sm" />
-                                {comment.author.isSeasonOneOG && (
-                                  <SeasonOneBadge size="sm" showLabel={false} />
-                                )}
-                                <span className="text-gray-500 text-xs">
-                                  {formatTime(comment.createdAt)}
-                                </span>
-                              </div>
-                              <p className="text-gray-100 leading-relaxed text-sm sm:text-base break-words">{comment.content}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="text-5xl mb-4">💬</div>
-                      <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Comment Form - Sticky at Bottom */}
-                {user && (
-                  <div className="sticky bottom-0 bg-black border-t border-white/10 px-4 sm:px-6 py-4">
-                    <form onSubmit={handleCommentSubmit} className="flex gap-3">
+              ) : comments.length > 0 ? (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-2">
                       <AvatarInitial
-                        name={user.displayName || user.username || 'User'}
-                        imageUrl={user.profilePictureUrl || user.avatar}
+                        name={comment.author.displayName || comment.author.username || 'User'}
+                        imageUrl={comment.author.profilePictureUrl || comment.author.avatar}
                         size="sm"
-                        className="flex-shrink-0"
                       />
-                      <div className="flex-1 flex gap-2">
-                        <input
-                          type="text"
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          placeholder="Write a comment..."
-                          className="flex-1 px-3 sm:px-4 py-2.5 border border-white/10 rounded-full focus:outline-none focus:ring-2 focus:ring-[#00FFBD] focus:border-transparent bg-white/5 text-white placeholder:text-gray-500 transition-all text-sm sm:text-base"
-                          maxLength={280}
-                          autoFocus
-                        />
-                        <button
-                          type="submit"
-                          disabled={!commentText.trim() || commentSubmitting}
-                          className="px-4 sm:px-5 py-2.5 bg-[#00FFBD] hover:bg-[#00D9A0] text-black font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all min-w-[44px]"
-                        >
-                          {commentSubmitting ? (
-                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <Send size={16} />
-                          )}
-                        </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="bg-white/5 rounded-lg px-3 py-2 border border-white/5">
+                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                            <button
+                              onClick={() => router.push(`/profile/${comment.author.id}`)}
+                              className="font-semibold text-white hover:text-[#00FFBD] transition-colors text-xs"
+                            >
+                              {comment.author.displayName || comment.author.username}
+                            </button>
+                            <VerifiedBadge user={comment.author} size="sm" />
+                            {comment.author.isSeasonOneOG && (
+                              <SeasonOneBadge size="sm" showLabel={false} />
+                            )}
+                            <span className="text-gray-500 text-xs">
+                              {formatTime(comment.createdAt)}
+                            </span>
+                          </div>
+                          <p className="text-gray-200 text-sm leading-relaxed break-words">{comment.content}</p>
+                        </div>
                       </div>
-                    </form>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
+                </div>
+              )}
+
+              {/* Comment Form */}
+              {user && (
+                <form onSubmit={handleCommentSubmit} className="flex gap-2 pt-2">
+                  <AvatarInitial
+                    name={user.displayName || user.username || 'User'}
+                    imageUrl={user.profilePictureUrl || user.avatar}
+                    size="sm"
+                    className="flex-shrink-0"
+                  />
+                  <div className="flex-1 flex gap-2">
+                    <input
+                      type="text"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="flex-1 px-3 py-2 border border-white/10 rounded-full focus:outline-none focus:ring-2 focus:ring-[#00FFBD] focus:border-transparent bg-white/5 text-white placeholder:text-gray-500 transition-all text-sm"
+                      maxLength={280}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!commentText.trim() || commentSubmitting}
+                      className="px-4 py-2 bg-[#00FFBD] hover:bg-[#00D9A0] text-black font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    >
+                      {commentSubmitting ? (
+                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Send size={14} />
+                      )}
+                    </button>
                   </div>
-                )}
-              </div>
+                </form>
+              )}
             </div>
           )}
         </div>
