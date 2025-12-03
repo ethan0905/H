@@ -114,8 +114,10 @@ async function main() {
     // Step 7: Test rank computation
     console.log('\n7️⃣  Testing rank computation...');
     const { computeRankForUser } = await import('../src/lib/gamification/rankService');
+    const { collectUserStats: collectStatsForRank } = await import('../src/lib/gamification/statsService');
     if (testUsers.length > 0) {
-      const result = await computeRankForUser(testUsers[0].id);
+      const userStatsForRank = await collectStatsForRank(testUsers[0].id);
+      const result = computeRankForUser(userStatsForRank);
       console.log(`   ✓ Computed rank for test user: ${result.rank}`);
       console.log(`   ✓ Rank score: ${result.rankScore}`);
     }
