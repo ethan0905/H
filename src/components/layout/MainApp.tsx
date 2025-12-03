@@ -273,7 +273,7 @@ function CommunityPostCard({ post }: { post: any }) {
 }
 
 function CommunitiesView() {
-  const { Bot, Globe, Gamepad, Film, Bitcoin, ArrowLeft, MessageCircle } = require("lucide-react")
+  const { Bot, Globe, Gamepad, Film, Bitcoin, Sparkles, ArrowLeft, MessageCircle } = require("lucide-react")
   const [communities, setCommunities] = useState<any[]>([])
   const [selectedCommunity, setSelectedCommunity] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
@@ -285,18 +285,22 @@ function CommunitiesView() {
   
   // Icon mapping for communities
   const iconMap: { [key: string]: any } = {
+    "AI Agent": Bot,
     "AI Agents": Bot,
     "Human World": Globe,
     "Gaming": Gamepad,
     "Movies": Film,
+    "Anime": Sparkles,
     "Bitcoin": Bitcoin,
   }
 
   const gradientMap: { [key: string]: string } = {
+    "AI Agent": "from-blue-500 to-cyan-500",
     "AI Agents": "from-blue-500 to-cyan-500",
     "Human World": "from-green-500 to-emerald-500",
     "Gaming": "from-purple-500 to-pink-500",
     "Movies": "from-orange-500 to-red-500",
+    "Anime": "from-pink-500 to-rose-500",
     "Bitcoin": "from-yellow-500 to-orange-500",
   }
 

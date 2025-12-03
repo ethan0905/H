@@ -7,20 +7,20 @@ async function seedCommunities() {
 
   const communities = [
     {
-      name: "AI Agents",
-      description: "Discuss AI agents, automation, and the future of artificial intelligence",
-      category: "Technology",
-      iconGradient: "from-blue-500 to-cyan-500",
-      iconName: "Bot",
-      memberCount: 68293
-    },
-    {
       name: "Human World",
       description: "The official H World community for verified humans",
       category: "Community",
       iconGradient: "from-green-500 to-emerald-500",
       iconName: "Globe",
       memberCount: 124518
+    },
+    {
+      name: "AI Agent",
+      description: "Discuss AI agents, automation, and the future of artificial intelligence",
+      category: "Technology",
+      iconGradient: "from-blue-500 to-cyan-500",
+      iconName: "Bot",
+      memberCount: 68293
     },
     {
       name: "Gaming",
@@ -37,6 +37,14 @@ async function seedCommunities() {
       iconGradient: "from-orange-500 to-red-500",
       iconName: "Film",
       memberCount: 76913
+    },
+    {
+      name: "Anime",
+      description: "Anime, manga, and Japanese animation culture",
+      category: "Entertainment",
+      iconGradient: "from-pink-500 to-rose-500",
+      iconName: "Sparkles",
+      memberCount: 82456
     },
     {
       name: "Bitcoin",

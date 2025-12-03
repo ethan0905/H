@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // GET /api/communities - Get all communities with user's membership status
 export async function GET(request: NextRequest) {
   try {
