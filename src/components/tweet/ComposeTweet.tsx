@@ -278,13 +278,8 @@ export default function ComposeTweet({
       setSelectedVideo(null);
       setVideoPreview(null);
       
-      // Notify parent and refresh page
+      // Notify parent - this will refresh the feed
       onTweetCreated?.(newTweet);
-      
-      // Refresh the page to show the new tweet
-      if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
 
     } catch (error) {
       console.error('Error creating tweet:', error);

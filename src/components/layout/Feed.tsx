@@ -35,6 +35,15 @@ export function Feed({ userId, profile }: FeedProps) {
     }
   };
 
+  const handleTweetCreated = () => {
+    // Refresh the feed from the server to ensure we have the latest data
+    if (isAuthenticated && user) {
+      fetchTweets(0, user.id);
+    } else {
+      fetchTweets();
+    }
+  };
+
   return (
     <div className="w-full sm:max-w-2xl sm:mx-auto sm:border-l sm:border-r border-gray-800">
       {/* Header */}
@@ -44,7 +53,7 @@ export function Feed({ userId, profile }: FeedProps) {
 
       {/* Compose Tweet */}
       <div className="border-b border-gray-800">
-        <ComposeTweet />
+        <ComposeTweet onTweetCreated={handleTweetCreated} />
       </div>
 
       {/* Feed */}
