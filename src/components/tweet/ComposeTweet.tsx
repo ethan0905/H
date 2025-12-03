@@ -111,6 +111,13 @@ export default function ComposeTweet({
     const file = e.target.files?.[0];
     if (!file) return;
     
+    console.log('📹 [CLIENT] Video selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      sizeInMB: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+    });
+    
     // Validate file type
     if (!file.type.startsWith('video/')) {
       alert('Please select a video file');
@@ -118,9 +125,10 @@ export default function ComposeTweet({
       return;
     }
     
-    // Validate file size (max 100MB)
-    if (file.size > 100 * 1024 * 1024) {
-      alert('Video size must be less than 100MB');
+    // Validate file size (max 50MB to match server)
+    const MAX_SIZE = 50 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      alert('Video size must be less than 50MB');
       e.target.value = ''; // Reset file input
       return;
     }
@@ -202,25 +210,51 @@ export default function ComposeTweet({
       // Upload video if selected
       if (videoFile) {
         setUploadingVideo(true);
-        const formData = new FormData();
-        formData.append('video', videoFile);
+        console.log('📤 [CLIENT] Starting video upload...');
         
-        const uploadResponse = await fetch('/api/upload-video', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        setUploadingVideo(false);
-        
-        if (!uploadResponse.ok) {
-          const error = await uploadResponse.json();
-          throw new Error(error.error || 'Failed to upload video');
+        try {
+          const formData = new FormData();
+          formData.append('video', videoFile);
+          
+          // Add timeout to the fetch request (60 seconds)
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            console.error('⏱️ [CLIENT] Upload timeout');
+            controller.abort();
+          }, 60000);
+          
+          const uploadResponse = await fetch('/api/upload-video', {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal,
+          });
+          
+          clearTimeout(timeoutId);
+          setUploadingVideo(false);
+          
+          if (!uploadResponse.ok) {
+            const error = await uploadResponse.json();
+            console.error('❌ [CLIENT] Upload failed:', error);
+            throw new Error(error.error || 'Failed to upload video');
+          }
+          
+          const uploadData = await uploadResponse.json();
+          console.log('✅ [CLIENT] Video uploaded successfully:', {
+            url: uploadData.url,
+            uploadTime: uploadData.uploadTime
+          });
+          
+          mediaUrl = uploadData.url;
+          thumbnailUrl = uploadData.thumbnailUrl;
+          mediaType = 'video';
+        } catch (uploadError: any) {
+          setUploadingVideo(false);
+          
+          if (uploadError.name === 'AbortError') {
+            throw new Error('Video upload timed out. Please try a smaller video or check your internet connection.');
+          }
+          throw uploadError;
         }
-        
-        const uploadData = await uploadResponse.json();
-        mediaUrl = uploadData.url;
-        thumbnailUrl = uploadData.thumbnailUrl;
-        mediaType = 'video';
       }
 
       // Create tweet data

@@ -1,58 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
-import sharp from 'sharp';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // 60 seconds max for video uploads
 
 // Maximum video size: 50MB
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
-    console.log('📹 Video upload request received');
+    console.log('📹 [VIDEO-UPLOAD] Request received');
     
     const formData = await request.formData();
     const file = formData.get('video') as File;
     
     if (!file) {
-      console.error('❌ No video file provided');
+      console.error('❌ [VIDEO-UPLOAD] No video file provided');
       return NextResponse.json(
         { error: 'No video file provided' },
         { status: 400 }
       );
     }
 
-    console.log('📋 Video details:', {
+    const sizeInMB = (file.size / 1024 / 1024).toFixed(2);
+    console.log('📋 [VIDEO-UPLOAD] Video details:', {
       name: file.name,
       type: file.type,
       size: file.size,
-      sizeInMB: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+      sizeInMB: sizeInMB + ' MB'
     });
 
     // Validate file type
-    if (!file.type.startsWith('video/')) {
-      console.error('❌ Invalid file type:', file.type);
+    const validTypes = ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo', 'video/x-matroska', 'video/mpeg'];
+    if (!file.type.startsWith('video/') && !validTypes.includes(file.type)) {
+      console.error('❌ [VIDEO-UPLOAD] Invalid file type:', file.type);
       return NextResponse.json(
-        { error: 'File must be a video' },
+        { error: 'Invalid video format. Supported: MP4, MOV, WebM, AVI, MKV' },
         { status: 400 }
       );
     }
 
     // Validate file size
     if (file.size > MAX_VIDEO_SIZE) {
-      console.error('❌ File too large:', file.size);
+      console.error('❌ [VIDEO-UPLOAD] File too large:', file.size);
       return NextResponse.json(
         { error: `Video size must be less than ${MAX_VIDEO_SIZE / 1024 / 1024}MB` },
         { status: 400 }
       );
     }
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    console.log('✅ Video buffer created, size:', buffer.length);
+    console.log('✅ [VIDEO-UPLOAD] Validation passed, starting upload...');
 
     // Generate unique filename
     const timestamp = Date.now();
@@ -60,54 +60,40 @@ export async function POST(request: NextRequest) {
     const extension = file.name.split('.').pop() || 'mp4';
     const filename = `videos/${timestamp}-${randomString}.${extension}`;
 
-    console.log('☁️  Uploading video to Vercel Blob:', filename);
+    console.log('☁️  [VIDEO-UPLOAD] Uploading to Vercel Blob:', filename);
 
-    // Upload video to Vercel Blob Storage
-    const videoBlob = await put(filename, buffer, {
+    // Upload video directly to Vercel Blob Storage (no buffer conversion for speed)
+    const videoBlob = await put(filename, file, {
       access: 'public',
-      contentType: file.type,
+      contentType: file.type || 'video/mp4',
     });
 
-    console.log('✅ Video uploaded:', videoBlob.url);
-
-    // For videos, we'll create a simple thumbnail using the first frame
-    // Note: For a more robust solution, you might want to use a service like FFmpeg
-    // For now, we'll return a placeholder or try to extract the first frame
-    let thumbnailUrl = null;
-
-    try {
-      // Try to create a thumbnail from the first frame if it's a common video format
-      // This is a simplified approach - in production you might want to use FFmpeg
-      console.log('🖼️  Attempting to create video thumbnail...');
-      
-      // For now, we'll skip thumbnail generation for videos
-      // and just return the video URL
-      console.log('⚠️  Video thumbnail generation skipped (requires FFmpeg)');
-      
-      // You can use a default video placeholder thumbnail or generate one later
-      thumbnailUrl = null;
-    } catch (thumbError) {
-      console.error('⚠️  Failed to create video thumbnail:', thumbError);
-      // Continue without thumbnail
-    }
-
-    console.log('✅ Video upload completed successfully');
+    const uploadTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`✅ [VIDEO-UPLOAD] Upload completed in ${uploadTime}s:`, videoBlob.url);
 
     return NextResponse.json({
       url: videoBlob.url,
-      thumbnailUrl: thumbnailUrl,
+      thumbnailUrl: null,
       success: true,
       filename: filename,
       size: file.size,
-      type: file.type
+      type: file.type,
+      uploadTime: uploadTime
     });
 
-  } catch (error) {
-    console.error('❌ Video upload error:', error);
+  } catch (error: any) {
+    const uploadTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.error(`❌ [VIDEO-UPLOAD] Upload failed after ${uploadTime}s:`, {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    });
+    
     return NextResponse.json(
       { 
         error: 'Failed to upload video',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        success: false
       },
       { status: 500 }
     );
