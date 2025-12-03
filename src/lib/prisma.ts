@@ -1,19 +1,25 @@
 import { PrismaClient } from '@prisma/client'
-import { withAccelerate } from '@prisma/extension-accelerate'
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: ReturnType<typeof createPrismaClient> | undefined
+  prisma: PrismaClient | undefined
 }
 
 const createPrismaClient = () => {
   console.log('🔧 [PRISMA] Creating new Prisma client...');
   console.log('🔧 [PRISMA] DATABASE_URL present:', !!process.env.DATABASE_URL);
-  console.log('🔧 [PRISMA] DATABASE_URL value:', process.env.DATABASE_URL ? 'Set (masked)' : 'NOT SET');
+  console.log('🔧 [PRISMA] DATABASE_URL type:', process.env.DATABASE_URL?.startsWith('prisma+') ? 'Accelerate' : 'Direct');
   
   try {
+    // Use direct connection for more reliability
+    // If you want to use Accelerate, ensure DATABASE_URL is correct in Vercel
     const client = new PrismaClient({
       log: ['error', 'warn'],
-    }).$extends(withAccelerate());
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL
+        }
+      }
+    });
     console.log('✅ [PRISMA] Prisma client created successfully');
     return client;
   } catch (error: any) {
