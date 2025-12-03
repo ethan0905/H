@@ -46,7 +46,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="H World" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} overflow-x-hidden max-w-full`}>
         <ErudaDebugger />
         <ErrorBoundary>
           <ThemeProvider

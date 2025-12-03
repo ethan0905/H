@@ -43,12 +43,12 @@ export function MainApp({ userId }: MainAppProps) {
   }
 
   return (
-    <div className="flex flex-col sm:flex-row h-screen bg-black text-white overflow-hidden">
+    <div className="flex flex-col sm:flex-row h-screen bg-black text-white overflow-hidden w-full max-w-full">
       {/* Desktop Sidebar - Hidden on mobile */}
       <Sidebar currentView={currentView} onViewChange={(view) => setCurrentView(view as View)} />
 
       {/* Main Content - Full width on mobile, adjusted on desktop */}
-      <main className="flex-1 overflow-y-auto sm:border-l sm:border-r border-gray-800 pb-16 sm:pb-0">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden sm:border-l sm:border-r border-gray-800 pb-16 sm:pb-0 w-full">
         {currentView === "home" && <Feed key={refreshKey} userId={userId} profile={userProfile} />}
         {/* Profile view redirects to /profile/[userId] route - no inline component */}
         {currentView === "communities" && <CommunitiesView />}
@@ -60,7 +60,7 @@ export function MainApp({ userId }: MainAppProps) {
       </main>
 
       {/* Right Sidebar - Trending (Desktop only) */}
-      <aside className="hidden lg:block w-72 border-l border-gray-800 p-6 overflow-y-auto bg-black">
+      <aside className="hidden lg:block w-72 border-l border-gray-800 p-6 overflow-y-auto bg-black flex-shrink-0">
         <h2 className="text-xl font-bold text-white mb-6">Trending</h2>
         <div className="space-y-4">
           {["Web3", "Verified Humans", "AI", "Decentralization", "Privacy"].map((tag) => (
