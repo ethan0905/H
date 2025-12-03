@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Tweet } from '@/types';
 import { prisma } from '@/lib/prisma';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Helper function to create initial seed data
 async function seedInitialData() {
   const userCount = await prisma.user.count();
