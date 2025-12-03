@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
+import { put } from '@vercel/blob';
 import sharp from 'sharp';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,40 +41,40 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const filename = `${timestamp}-${randomString}`;
-    
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
 
-    // Process and save the main image
-    const mainImagePath = path.join(uploadsDir, `${filename}.jpg`);
-    await sharp(buffer)
+    // Process the main image
+    const processedImage = await sharp(buffer)
       .resize(1200, 1200, {
         fit: 'inside',
         withoutEnlargement: true
       })
       .jpeg({ quality: 85 })
-      .toFile(mainImagePath);
+      .toBuffer();
 
     // Create thumbnail
-    const thumbnailPath = path.join(uploadsDir, `${filename}-thumb.jpg`);
-    await sharp(buffer)
+    const thumbnailBuffer = await sharp(buffer)
       .resize(400, 400, {
         fit: 'cover',
         position: 'center'
       })
       .jpeg({ quality: 80 })
-      .toFile(thumbnailPath);
+      .toBuffer();
 
-    // Return URLs (relative to public folder)
-    const imageUrl = `/uploads/${filename}.jpg`;
-    const thumbnailUrl = `/uploads/${filename}-thumb.jpg`;
+    // Upload to Vercel Blob Storage
+    const [mainBlob, thumbBlob] = await Promise.all([
+      put(`uploads/${filename}.jpg`, processedImage, {
+        access: 'public',
+        contentType: 'image/jpeg',
+      }),
+      put(`uploads/${filename}-thumb.jpg`, thumbnailBuffer, {
+        access: 'public',
+        contentType: 'image/jpeg',
+      })
+    ]);
 
     return NextResponse.json({
-      url: imageUrl,
-      thumbnailUrl: thumbnailUrl,
+      url: mainBlob.url,
+      thumbnailUrl: thumbBlob.url,
       success: true
     });
 
