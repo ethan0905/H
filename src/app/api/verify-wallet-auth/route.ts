@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySiweMessage } from '@worldcoin/minikit-js';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   console.log('🚀 [VERIFY-WALLET-AUTH] Starting wallet authentication...');
   
