@@ -1,8 +1,8 @@
 {
-  "/profile/[userId]/page": "app/profile/[userId]/page.js",
-  "/api/gamification/user/[userId]/route": "app/api/gamification/user/[userId]/route.js",
-  "/api/users/[userId]/tweets/route": "app/api/users/[userId]/tweets/route.js",
-  "/api/users/route": "app/api/users/route.js",
-  "/api/subscriptions/status/route": "app/api/subscriptions/status/route.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/api/upload-video/route": "app/api/upload-video/route.js",
+  "/api/tweets/route": "app/api/tweets/route.js",
+  "/api/nonce/route": "app/api/nonce/route.js",
+  "/api/verify-wallet-auth/route": "app/api/verify-wallet-auth/route.js",
+  "/api/subscriptions/status/route": "app/api/subscriptions/status/route.js"
 }
