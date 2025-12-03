@@ -11,6 +11,7 @@ import { RankProgress } from '@/components/gamification/RankProgress';
 import { TagsDisplay } from '@/components/gamification/TagsDisplay';
 import { AvatarInitial } from '@/components/ui/AvatarInitial';
 import { SeasonOneBadge } from '@/components/ui/SeasonOneBadge';
+import { StreakDisplay } from '@/components/ui/StreakDisplay';
 import { ArrowLeft } from 'lucide-react';
 
 interface ProfileProps {
@@ -522,18 +523,18 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
             {/* Gamification Section */}
             {!gamificationLoading && gamificationData && (
               <div className="mb-4 space-y-3">
-                {/* Rank Badge */}
-                <div className="flex items-center space-x-2">
+                {/* Rank Badge & Streak */}
+                <div className="flex items-center justify-between space-x-3">
                   <RankBadge 
                     rank={gamificationData.rank.current as any}
                     size="md"
                     showLabel={true}
                   />
-                  <div className="flex-1">
-                    <div className="text-sm text-muted-foreground">
-                      🔥 {gamificationData.stats.streakDays} day streak
-                    </div>
-                  </div>
+                  <StreakDisplay
+                    currentStreak={gamificationData.stats.streakDays}
+                    size="md"
+                    isActive={true}
+                  />
                 </div>
 
                 {/* Progress Bar */}

@@ -25,6 +25,8 @@ export default function ComposeTweet({
   const [isLoading, setIsLoading] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'pro'>('free');
   const [postsToday, setPostsToday] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { user } = useUserStore();
   const { addTweet } = useTweetStore();
   
@@ -41,13 +43,15 @@ export default function ComposeTweet({
       if (!user) return;
       
       try {
-        const response = await fetch('/api/subscriptions/status');
+        const response = await fetch(`/api/subscriptions/status?userId=${user.id}`);
         if (response.ok) {
           const data = await response.json();
           setSubscriptionTier(data.plan === 'pro' ? 'pro' : 'free');
         }
       } catch (error) {
         console.error('Error fetching subscription:', error);
+        // Fallback to user.isPro if API fails
+        setSubscriptionTier(user.isPro ? 'pro' : 'free');
       }
     };
 
@@ -69,16 +73,76 @@ export default function ComposeTweet({
     }
   }, []);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
   const handleSubmit = async () => {
     if (!content.trim() || !user || isLoading) return;
 
     try {
       setIsLoading(true);
 
+      let imageUrl = null;
+      let thumbnailUrl = null;
+      
+      // Upload image if selected
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append('image', selectedImage);
+        
+        // Upload to the Next.js API endpoint
+        const uploadResponse = await fetch('/api/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!uploadResponse.ok) {
+          const error = await uploadResponse.json();
+          throw new Error(error.error || 'Failed to upload image');
+        }
+        
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.url;
+        thumbnailUrl = uploadData.thumbnailUrl;
+      }
+
       // Create tweet data
       const tweetData = {
         content: content.trim(),
         userId: user.id,
+        media: imageUrl ? [{
+          type: 'image',
+          url: imageUrl,
+          thumbnailUrl: thumbnailUrl
+        }] : undefined,
       };
 
       // In a real app, you'd send this to your backend
@@ -126,6 +190,8 @@ export default function ComposeTweet({
       
       // Clear form
       setContent('');
+      setSelectedImage(null);
+      setImagePreview(null);
       
       // Notify parent
       onTweetCreated?.(newTweet);
@@ -210,6 +276,24 @@ export default function ComposeTweet({
             disabled={isLoading || hasReachedLimit}
           />
 
+          {/* Image Preview */}
+          {imagePreview && (
+            <div className="mt-3 relative inline-block">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="max-h-64 rounded-lg border border-gray-800"
+              />
+              <button
+                onClick={handleRemoveImage}
+                className="absolute top-2 right-2 p-1.5 bg-black/80 hover:bg-black rounded-full text-white transition-colors"
+                type="button"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
           {/* Estimated Earnings Preview */}
           {content.length > 0 && (
             <div className="mt-3 border rounded-lg p-3" style={{ backgroundColor: "#00FFBD10", borderColor: "#00FFBD30" }}>
@@ -234,30 +318,38 @@ export default function ComposeTweet({
           {/* Actions Bar */}
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-center space-x-3">
-              <button
-                type="button"
-                className="p-2 text-gray-400 hover:text-[#00FFBD] hover:bg-gray-900 rounded-full transition-colors"
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+                id="image-upload"
+                disabled={isLoading || hasReachedLimit}
+              />
+              <label
+                htmlFor="image-upload"
+                className={`p-2 text-gray-400 hover:text-[#00FFBD] hover:bg-gray-900 rounded-full transition-colors cursor-pointer ${
+                  (isLoading || hasReachedLimit) ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
                 title="Add image"
               >
                 <ImageIcon size={20} />
-              </button>
+              </label>
             </div>
 
             <div className="flex items-center space-x-3">
-              {/* Character Count */}
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-medium ${
+              {/* Character Count - Only show when approaching limit */}
+              {remainingChars < 20 && (
+                <span
+                  className={`text-sm font-medium ${
                     isOverLimit
-                      ? 'border-red-500 text-red-500'
-                      : remainingChars < 20
-                      ? 'border-yellow-500 text-yellow-500'
-                      : 'border-gray-700 text-gray-400'
+                      ? 'text-red-500'
+                      : 'text-yellow-500'
                   }`}
                 >
-                  {remainingChars < 20 ? remainingChars : ''}
-                </div>
-              </div>
+                  {remainingChars}
+                </span>
+              )}
 
               {/* Tweet Button */}
               <button

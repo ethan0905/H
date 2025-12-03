@@ -238,6 +238,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Update user streak
+    if (user) {
+      try {
+        const { updateUserStreak } = await import('@/lib/streak-manager');
+        await updateUserStreak(user.id);
+      } catch (streakError) {
+        console.error('Error updating streak:', streakError);
+        // Don't fail the tweet creation if streak update fails
+      }
+    }
+
     if (!user) {
       // Create new user
       const isWorldIdUser = userId.startsWith('0x') && userId.length > 20;
@@ -272,11 +283,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create tweet
+    // Create tweet with media
     const tweet = await prisma.tweet.create({
       data: {
         content,
         authorId: user.id,
+        media: media && media.length > 0 ? {
+          create: media.map((item: any) => ({
+            type: item.type,
+            url: item.url,
+            thumbnailUrl: item.thumbnailUrl,
+            alt: item.alt,
+          }))
+        } : undefined,
       },
       include: {
         author: true,
@@ -289,23 +308,6 @@ export async function POST(request: NextRequest) {
         },
       },
     });
-
-    // Add media if provided
-    if (media && media.length > 0) {
-      await Promise.all(
-        media.map((item: any) =>
-          prisma.media.create({
-            data: {
-              tweetId: tweet.id,
-              type: item.type,
-              url: item.url,
-              thumbnailUrl: item.thumbnailUrl,
-              alt: item.alt,
-            },
-          })
-        )
-      );
-    }
 
     // Transform to match frontend format
     const transformedTweet: Tweet = {

@@ -32,6 +32,8 @@ model User {
   currentRank           String    @default("HUMAN_VERIFIED") // HUMAN_VERIFIED, HUMAN_EXPLORER, HUMAN_PIONEER, HUMAN_ELITE, HUMAN_LEGEND, HUMAN_INFINITY
   rankScore             Int       @default(0)
   streakDays            Int       @default(0)
+  lastStreakDate        DateTime? // Last date user posted (for streak tracking)
+  longestStreak         Int       @default(0) // Longest streak achieved
   lastActiveAt          DateTime?
   contributionScore     Int       @default(0)
   engagementScore       Int       @default(0)
