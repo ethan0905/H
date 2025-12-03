@@ -156,8 +156,8 @@ export default function TweetCard({ tweet }: TweetCardProps) {
     }
   };
 
-  // Check if user can delete this tweet
-  const canDelete = user && (user.id === tweet.author.id || user.isSuperAdmin === true);
+  // Check if user can delete this tweet - Only superadmin (@ethan) can delete tweets
+  const canDelete = user && user.isSuperAdmin === true;
 
   const formatTime = (date: string | Date) => {
     const now = new Date();
