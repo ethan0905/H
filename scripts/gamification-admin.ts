@@ -268,8 +268,8 @@ async function updateRanks() {
 
 async function updateLeaderboards() {
   console.log('🔄 Updating leaderboards...');
-  const { updateAllLeaderboards } = await import('../src/lib/gamification/leaderboardUpdateJob');
-  await updateAllLeaderboards();
+  const { runLeaderboardUpdateJob } = await import('../src/lib/gamification/leaderboardUpdateJob');
+  await runLeaderboardUpdateJob();
   console.log('✓ Leaderboards updated');
 }
 
