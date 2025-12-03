@@ -166,118 +166,133 @@ export default function ComposeTweet({
   const handleSubmit = async () => {
     if (!content.trim() || !user || isLoading) return;
 
-    // Store current values
-    const tweetContent = content.trim();
-    const imageFile = selectedImage;
-    const videoFile = selectedVideo;
+    try {
+      setIsLoading(true);
+      
+      // Store current values
+      const tweetContent = content.trim();
+      const imageFile = selectedImage;
+      const videoFile = selectedVideo;
 
-    // Clear form immediately for better UX
-    setContent('');
-    setSelectedImage(null);
-    setImagePreview(null);
-    setSelectedVideo(null);
-    setVideoPreview(null);
-    setIsLoading(false); // Don't show loading state
-    
-    // Update counters immediately
-    const today = new Date().toDateString();
-    const newCount = postsToday + 1;
-    setPostsToday(newCount);
-    localStorage.setItem('postsToday', JSON.stringify({ date: today, count: newCount }));
-    
-    // Update earnings immediately
-    const currentEarnings = JSON.parse(localStorage.getItem('user_earnings') || '{"total": 0, "last7Days": []}');
-    const todayShort = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-    currentEarnings.total = (currentEarnings.total || 0) + estimatedEarnings;
-    if (!currentEarnings.last7Days) currentEarnings.last7Days = [];
-    const todayEntry = currentEarnings.last7Days.find((d: any) => d.day === todayShort);
-    if (todayEntry) {
-      todayEntry.amount += estimatedEarnings;
-    } else {
-      currentEarnings.last7Days.push({ day: todayShort, amount: estimatedEarnings });
-    }
-    localStorage.setItem('user_earnings', JSON.stringify(currentEarnings));
-
-    // Process upload and tweet creation in background
-    (async () => {
-      try {
-        let mediaUrl = null;
-        let thumbnailUrl = null;
-        let mediaType: 'image' | 'video' | null = null;
+      let mediaUrl = null;
+      let thumbnailUrl = null;
+      let mediaType: 'image' | 'video' | null = null;
+      
+      // Upload image if selected
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('image', imageFile);
         
-        // Upload image if selected
-        if (imageFile) {
-          const formData = new FormData();
-          formData.append('image', imageFile);
-          
-          const uploadResponse = await fetch('/api/upload-image', {
-            method: 'POST',
-            body: formData,
-          });
-          
-          if (uploadResponse.ok) {
-            const uploadData = await uploadResponse.json();
-            mediaUrl = uploadData.url;
-            thumbnailUrl = uploadData.thumbnailUrl;
-            mediaType = 'image';
-          }
-        }
-        
-        // Upload video if selected
-        if (videoFile) {
-          const formData = new FormData();
-          formData.append('video', videoFile);
-          
-          const uploadResponse = await fetch('/api/upload-video', {
-            method: 'POST',
-            body: formData,
-          });
-          
-          if (uploadResponse.ok) {
-            const uploadData = await uploadResponse.json();
-            mediaUrl = uploadData.url;
-            thumbnailUrl = uploadData.thumbnailUrl;
-            mediaType = 'video';
-          }
-        }
-
-        // Create tweet data
-        const tweetData = {
-          content: tweetContent,
-          userId: user.id,
-          media: mediaUrl ? [{
-            type: mediaType,
-            url: mediaUrl,
-            thumbnailUrl: thumbnailUrl
-          }] : undefined,
-        };
-
-        // Send to backend
-        const response = await fetch('/api/tweets', {
+        const uploadResponse = await fetch('/api/upload-image', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(tweetData),
+          body: formData,
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to create tweet');
+        
+        if (!uploadResponse.ok) {
+          const error = await uploadResponse.json();
+          throw new Error(error.error || 'Failed to upload image');
         }
-
-        const newTweet: Tweet = await response.json();
         
-        // Add to store
-        addTweet(newTweet);
-        
-        // Notify parent
-        onTweetCreated?.(newTweet);
-
-      } catch (error) {
-        console.error('Error creating tweet:', error);
-        // Silently fail in background - tweet is already "posted" from user perspective
+        const uploadData = await uploadResponse.json();
+        mediaUrl = uploadData.url;
+        thumbnailUrl = uploadData.thumbnailUrl;
+        mediaType = 'image';
       }
-    })();
+      
+      // Upload video if selected
+      if (videoFile) {
+        setUploadingVideo(true);
+        const formData = new FormData();
+        formData.append('video', videoFile);
+        
+        const uploadResponse = await fetch('/api/upload-video', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        setUploadingVideo(false);
+        
+        if (!uploadResponse.ok) {
+          const error = await uploadResponse.json();
+          throw new Error(error.error || 'Failed to upload video');
+        }
+        
+        const uploadData = await uploadResponse.json();
+        mediaUrl = uploadData.url;
+        thumbnailUrl = uploadData.thumbnailUrl;
+        mediaType = 'video';
+      }
+
+      // Create tweet data
+      const tweetData = {
+        content: tweetContent,
+        userId: user.id,
+        media: mediaUrl ? [{
+          type: mediaType,
+          url: mediaUrl,
+          thumbnailUrl: thumbnailUrl
+        }] : undefined,
+      };
+
+      // Send to backend
+      const response = await fetch('/api/tweets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tweetData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create tweet');
+      }
+
+      const newTweet: Tweet = await response.json();
+      
+      // Add to store
+      addTweet(newTweet);
+      
+      // Update counters
+      const today = new Date().toDateString();
+      const newCount = postsToday + 1;
+      setPostsToday(newCount);
+      localStorage.setItem('postsToday', JSON.stringify({ date: today, count: newCount }));
+      
+      // Update earnings
+      const currentEarnings = JSON.parse(localStorage.getItem('user_earnings') || '{"total": 0, "last7Days": []}');
+      const todayShort = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+      currentEarnings.total = (currentEarnings.total || 0) + estimatedEarnings;
+      if (!currentEarnings.last7Days) currentEarnings.last7Days = [];
+      const todayEntry = currentEarnings.last7Days.find((d: any) => d.day === todayShort);
+      if (todayEntry) {
+        todayEntry.amount += estimatedEarnings;
+      } else {
+        currentEarnings.last7Days.push({ day: todayShort, amount: estimatedEarnings });
+      }
+      localStorage.setItem('user_earnings', JSON.stringify(currentEarnings));
+      
+      // Clear form
+      setContent('');
+      setSelectedImage(null);
+      setImagePreview(null);
+      setSelectedVideo(null);
+      setVideoPreview(null);
+      
+      // Notify parent and refresh page
+      onTweetCreated?.(newTweet);
+      
+      // Refresh the page to show the new tweet
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
+
+    } catch (error) {
+      console.error('Error creating tweet:', error);
+      alert('Failed to post tweet. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setUploadingVideo(false);
+    }
   };
 
   const remainingChars = effectiveMaxLength - content.length;
