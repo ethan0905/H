@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Send, ImageIcon, X, TrendingUp, Crown } from 'lucide-react';
+import { Send, ImageIcon, X, TrendingUp, Crown, Video } from 'lucide-react';
 import { useUserStore } from '@/store/userStore';
 import { useTweetStore } from '@/store/tweetStore';
 import { CreateTweetData, Tweet } from '@/types';
@@ -27,6 +27,9 @@ export default function ComposeTweet({
   const [postsToday, setPostsToday] = useState(0);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const { user } = useUserStore();
   const { addTweet } = useTweetStore();
   
@@ -104,104 +107,177 @@ export default function ComposeTweet({
     setImagePreview(null);
   };
 
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('video/')) {
+      alert('Please select a video file');
+      e.target.value = ''; // Reset file input
+      return;
+    }
+    
+    // Validate file size (max 100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      alert('Video size must be less than 100MB');
+      e.target.value = ''; // Reset file input
+      return;
+    }
+
+    // Check video duration
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    video.onerror = () => {
+      window.URL.revokeObjectURL(video.src);
+      alert('Unable to load video. Please try a different file.');
+      e.target.value = ''; // Reset file input
+    };
+    
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      const duration = video.duration;
+      
+      if (duration > 120) { // 2 minutes = 120 seconds
+        alert('Video duration must be 2 minutes or less');
+        e.target.value = ''; // Reset file input
+        return;
+      }
+      
+      setSelectedVideo(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVideoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    };
+    
+    video.src = URL.createObjectURL(file);
+  };
+
+  const handleRemoveVideo = () => {
+    setSelectedVideo(null);
+    setVideoPreview(null);
+  };
+
   const handleSubmit = async () => {
     if (!content.trim() || !user || isLoading) return;
 
-    try {
-      setIsLoading(true);
+    // Store current values
+    const tweetContent = content.trim();
+    const imageFile = selectedImage;
+    const videoFile = selectedVideo;
 
-      let imageUrl = null;
-      let thumbnailUrl = null;
-      
-      // Upload image if selected
-      if (selectedImage) {
-        const formData = new FormData();
-        formData.append('image', selectedImage);
+    // Clear form immediately for better UX
+    setContent('');
+    setSelectedImage(null);
+    setImagePreview(null);
+    setSelectedVideo(null);
+    setVideoPreview(null);
+    setIsLoading(false); // Don't show loading state
+    
+    // Update counters immediately
+    const today = new Date().toDateString();
+    const newCount = postsToday + 1;
+    setPostsToday(newCount);
+    localStorage.setItem('postsToday', JSON.stringify({ date: today, count: newCount }));
+    
+    // Update earnings immediately
+    const currentEarnings = JSON.parse(localStorage.getItem('user_earnings') || '{"total": 0, "last7Days": []}');
+    const todayShort = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+    currentEarnings.total = (currentEarnings.total || 0) + estimatedEarnings;
+    if (!currentEarnings.last7Days) currentEarnings.last7Days = [];
+    const todayEntry = currentEarnings.last7Days.find((d: any) => d.day === todayShort);
+    if (todayEntry) {
+      todayEntry.amount += estimatedEarnings;
+    } else {
+      currentEarnings.last7Days.push({ day: todayShort, amount: estimatedEarnings });
+    }
+    localStorage.setItem('user_earnings', JSON.stringify(currentEarnings));
+
+    // Process upload and tweet creation in background
+    (async () => {
+      try {
+        let mediaUrl = null;
+        let thumbnailUrl = null;
+        let mediaType: 'image' | 'video' | null = null;
         
-        // Upload to the Next.js API endpoint
-        const uploadResponse = await fetch('/api/upload-image', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (!uploadResponse.ok) {
-          const error = await uploadResponse.json();
-          throw new Error(error.error || 'Failed to upload image');
+        // Upload image if selected
+        if (imageFile) {
+          const formData = new FormData();
+          formData.append('image', imageFile);
+          
+          const uploadResponse = await fetch('/api/upload-image', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (uploadResponse.ok) {
+            const uploadData = await uploadResponse.json();
+            mediaUrl = uploadData.url;
+            thumbnailUrl = uploadData.thumbnailUrl;
+            mediaType = 'image';
+          }
         }
         
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-        thumbnailUrl = uploadData.thumbnailUrl;
+        // Upload video if selected
+        if (videoFile) {
+          const formData = new FormData();
+          formData.append('video', videoFile);
+          
+          const uploadResponse = await fetch('/api/upload-video', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (uploadResponse.ok) {
+            const uploadData = await uploadResponse.json();
+            mediaUrl = uploadData.url;
+            thumbnailUrl = uploadData.thumbnailUrl;
+            mediaType = 'video';
+          }
+        }
+
+        // Create tweet data
+        const tweetData = {
+          content: tweetContent,
+          userId: user.id,
+          media: mediaUrl ? [{
+            type: mediaType,
+            url: mediaUrl,
+            thumbnailUrl: thumbnailUrl
+          }] : undefined,
+        };
+
+        // Send to backend
+        const response = await fetch('/api/tweets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(tweetData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create tweet');
+        }
+
+        const newTweet: Tweet = await response.json();
+        
+        // Add to store
+        addTweet(newTweet);
+        
+        // Notify parent
+        onTweetCreated?.(newTweet);
+
+      } catch (error) {
+        console.error('Error creating tweet:', error);
+        // Silently fail in background - tweet is already "posted" from user perspective
       }
-
-      // Create tweet data
-      const tweetData = {
-        content: content.trim(),
-        userId: user.id,
-        media: imageUrl ? [{
-          type: 'image',
-          url: imageUrl,
-          thumbnailUrl: thumbnailUrl
-        }] : undefined,
-      };
-
-      // In a real app, you'd send this to your backend
-      const response = await fetch('/api/tweets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(tweetData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create tweet');
-      }
-
-      const newTweet: Tweet = await response.json();
-      
-      // Add to store
-      addTweet(newTweet);
-      
-      // Update posts today counter
-      const today = new Date().toDateString();
-      const newCount = postsToday + 1;
-      setPostsToday(newCount);
-      localStorage.setItem('postsToday', JSON.stringify({ date: today, count: newCount }));
-      
-      // Store earnings data in localStorage for earnings view
-      const currentEarnings = JSON.parse(localStorage.getItem('user_earnings') || '{"total": 0, "last7Days": []}');
-      const todayShort = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-      const todayIndex = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(todayShort);
-      
-      // Update earnings
-      currentEarnings.total = (currentEarnings.total || 0) + estimatedEarnings;
-      if (!currentEarnings.last7Days) currentEarnings.last7Days = [];
-      
-      // Find or create today's entry
-      const todayEntry = currentEarnings.last7Days.find((d: any) => d.day === todayShort);
-      if (todayEntry) {
-        todayEntry.amount += estimatedEarnings;
-      } else {
-        currentEarnings.last7Days.push({ day: todayShort, amount: estimatedEarnings });
-      }
-      
-      localStorage.setItem('user_earnings', JSON.stringify(currentEarnings));
-      
-      // Clear form
-      setContent('');
-      setSelectedImage(null);
-      setImagePreview(null);
-      
-      // Notify parent
-      onTweetCreated?.(newTweet);
-
-    } catch (error) {
-      console.error('Error creating tweet:', error);
-      // In a real app, show error toast
-    } finally {
-      setIsLoading(false);
-    }
+    })();
   };
 
   const remainingChars = effectiveMaxLength - content.length;
@@ -294,6 +370,24 @@ export default function ComposeTweet({
             </div>
           )}
 
+          {/* Video Preview */}
+          {videoPreview && (
+            <div className="mt-3 relative inline-block">
+              <video 
+                src={videoPreview}
+                className="max-h-64 rounded-lg border border-gray-800"
+                controls
+              />
+              <button
+                onClick={handleRemoveVideo}
+                className="absolute top-2 right-2 p-1.5 bg-black/80 hover:bg-black rounded-full text-white transition-colors"
+                type="button"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
           {/* Estimated Earnings Preview */}
           {content.length > 0 && (
             <div className="mt-3 border rounded-lg p-3" style={{ backgroundColor: "#00FFBD10", borderColor: "#00FFBD30" }}>
@@ -324,16 +418,34 @@ export default function ComposeTweet({
                 onChange={handleImageSelect}
                 className="hidden"
                 id="image-upload"
-                disabled={isLoading || hasReachedLimit}
+                disabled={isLoading || hasReachedLimit || selectedVideo !== null}
               />
               <label
                 htmlFor="image-upload"
                 className={`p-2 text-gray-400 hover:text-[#00FFBD] hover:bg-gray-900 rounded-full transition-colors cursor-pointer ${
-                  (isLoading || hasReachedLimit) ? 'opacity-50 cursor-not-allowed' : ''
+                  (isLoading || hasReachedLimit || selectedVideo !== null) ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 title="Add image"
               >
                 <ImageIcon size={20} />
+              </label>
+
+              <input
+                type="file"
+                accept="video/*"
+                onChange={handleVideoSelect}
+                className="hidden"
+                id="video-upload"
+                disabled={isLoading || hasReachedLimit || selectedImage !== null}
+              />
+              <label
+                htmlFor="video-upload"
+                className={`p-2 text-gray-400 hover:text-[#00FFBD] hover:bg-gray-900 rounded-full transition-colors cursor-pointer ${
+                  (isLoading || hasReachedLimit || selectedImage !== null) ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                title="Add video (max 2 min)"
+              >
+                <Video size={20} />
               </label>
             </div>
 
@@ -360,7 +472,7 @@ export default function ComposeTweet({
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                    <span>Posting...</span>
+                    <span>{uploadingVideo ? 'Uploading video...' : 'Posting...'}</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">

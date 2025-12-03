@@ -3,6 +3,10 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     // App directory is now stable in Next.js 14+
+    // Increase body size limit for large file uploads
+    serverActions: {
+      bodySizeLimit: '100mb',
+    },
   },
   typescript: {
     ignoreBuildErrors: false,

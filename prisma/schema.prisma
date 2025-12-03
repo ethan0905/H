@@ -24,6 +24,7 @@ model User {
   isVerified            Boolean   @default(false)
   isPro                 Boolean   @default(false) // Pro subscription status
   isSeasonOneOG         Boolean   @default(false) // Season 1 OG Human badge
+  isSuperAdmin          Boolean   @default(false) // Super admin privileges (can delete any tweet, upload community banners)
   verificationLevel     String?   // 'orb' or 'device'
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
@@ -264,6 +265,7 @@ model Community {
   category              String
   iconGradient          String    // e.g. "from-blue-500 to-cyan-500"
   iconName              String    // e.g. "Bot", "Globe"
+  bannerUrl             String?   // Community banner image (super admin only)
   memberCount           Int       @default(0)
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt

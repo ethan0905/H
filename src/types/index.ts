@@ -11,6 +11,7 @@ export interface User {
   verified?: boolean; // Alternative field name for compatibility
   isPro?: boolean; // Pro subscription status
   isSeasonOneOG?: boolean; // Season 1 OG Human badge
+  isSuperAdmin?: boolean; // Super admin privileges
   createdAt?: Date;
   updatedAt?: Date;
   // World ID verification

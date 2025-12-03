@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, MessageCircle, Repeat2, Share, MoreHorizontal, Send, Eye, Coins } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2, Share, MoreHorizontal, Send, Eye, Coins, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tweet, Comment } from '@/types';
@@ -20,6 +20,7 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   const [commentText, setCommentText] = useState('');
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const { likeTweet, retweetTweet } = useTweetStore();
   const { user, worldIdVerification } = useUserStore();
@@ -120,6 +121,44 @@ export default function TweetCard({ tweet }: TweetCardProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!user) return;
+    
+    const isOwner = user.id === tweet.author.id;
+    const isSuperAdmin = user.isSuperAdmin === true;
+    
+    if (!isOwner && !isSuperAdmin) return;
+    
+    const confirmMessage = isSuperAdmin && !isOwner
+      ? 'Are you sure you want to delete this tweet? (Super Admin Action)'
+      : 'Are you sure you want to delete this tweet?';
+    
+    if (!confirm(confirmMessage)) return;
+    
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/tweets/${tweet.id}?userId=${encodeURIComponent(user.id)}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        // Refresh the page or remove tweet from UI
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to delete tweet');
+      }
+    } catch (error) {
+      console.error('Error deleting tweet:', error);
+      alert('Failed to delete tweet');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Check if user can delete this tweet
+  const canDelete = user && (user.id === tweet.author.id || user.isSuperAdmin === true);
+
   const formatTime = (date: string | Date) => {
     const now = new Date();
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -206,8 +245,12 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                     <video
                       src={item.url}
                       controls
-                      className="w-full max-h-96"
-                    />
+                      preload="metadata"
+                      poster={item.thumbnailUrl || undefined}
+                      className="w-full max-h-96 bg-black"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
                   )}
                 </div>
               ))}
@@ -282,6 +325,21 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                 <Share size={18} />
               </div>
             </button>
+
+            {/* Delete Button - Super Admin & Author Only */}
+            {canDelete && (
+              <button
+                onClick={handleDelete}
+                className={`flex items-center gap-2 hover:text-red-600 transition-all group/btn ${
+                  isDeleting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={isDeleting}
+              >
+                <div className="p-2 rounded-full group-hover/btn:bg-red-600/10 transition-colors">
+                  <Trash2 size={18} />
+                </div>
+              </button>
+            )}
           </div>
 
           {/* Comments Section - Inline */}
