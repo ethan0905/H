@@ -15,7 +15,18 @@ export function AvatarInitial({ name, imageUrl, size = "md", className = "" }: A
     xl: "w-24 h-24 text-3xl",
   }
 
-  // Always show initial, ignore imageUrl
+  // If imageUrl is provided, show the image instead of initial
+  if (imageUrl) {
+    return (
+      <img
+        src={imageUrl}
+        alt={name}
+        className={`${sizeClasses[size]} rounded-full object-cover border-2 border-[#00FFBE] shrink-0 ${className}`}
+      />
+    )
+  }
+
+  // Otherwise show the initial letter
   return (
     <div
       className={`${sizeClasses[size]} bg-black border-2 border-[#00FFBE] rounded-full flex items-center justify-center font-bold shrink-0 ${className}`}

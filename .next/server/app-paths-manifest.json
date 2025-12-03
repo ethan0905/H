@@ -1,13 +1,10 @@
 {
-  "/page": "app/page.js",
-  "/api/nonce/route": "app/api/nonce/route.js",
-  "/api/verify-wallet-auth/route": "app/api/verify-wallet-auth/route.js",
   "/api/subscriptions/status/route": "app/api/subscriptions/status/route.js",
+  "/page": "app/page.js",
   "/api/tweets/route": "app/api/tweets/route.js",
   "/profile/[userId]/page": "app/profile/[userId]/page.js",
+  "/api/upload-image/route": "app/api/upload-image/route.js",
   "/api/users/route": "app/api/users/route.js",
   "/api/gamification/user/[userId]/route": "app/api/gamification/user/[userId]/route.js",
-  "/api/users/[userId]/tweets/route": "app/api/users/[userId]/tweets/route.js",
-  "/api/upload-image/route": "app/api/upload-image/route.js",
-  "/api/users/profile/route": "app/api/users/profile/route.js"
+  "/api/users/[userId]/tweets/route": "app/api/users/[userId]/tweets/route.js"
 }
