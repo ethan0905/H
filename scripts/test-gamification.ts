@@ -105,10 +105,10 @@ async function main() {
       const { collectUserStats } = await import('../src/lib/gamification/statsService');
       const stats = await collectUserStats(testUsers[0].id);
       console.log('   ✓ Stats collected for test user:');
-      console.log(`     - Tweets: ${stats.tweetsCount}`);
-      console.log(`     - Comments: ${stats.commentsCount}`);
-      console.log(`     - Likes received: ${stats.likesReceivedCount}`);
-      console.log(`     - Followers: ${stats.followersCount}`);
+      console.log(`     - Tweets: ${stats.totalTweets}`);
+      console.log(`     - Comments: ${stats.totalComments}`);
+      console.log(`     - Likes received: ${stats.totalLikes}`);
+      console.log(`     - Streak days: ${stats.streakDays}`);
     }
 
     // Step 7: Test rank computation
@@ -117,26 +117,23 @@ async function main() {
     if (testUsers.length > 0) {
       const result = await computeRankForUser(testUsers[0].id);
       console.log(`   ✓ Computed rank for test user: ${result.rank}`);
-      console.log(`   ✓ Rank score: ${result.score}`);
+      console.log(`   ✓ Rank score: ${result.rankScore}`);
     }
 
     // Step 8: Test leaderboard computation
     console.log('\n8️⃣  Testing leaderboard computation...');
     const { computeLeaderboardScore } = await import('../src/lib/gamification/leaderboardService');
+    const { collectUserStats: collectStatsForScore } = await import('../src/lib/gamification/statsService');
     if (testUsers.length > 0) {
-      const user = testUsers[0] as any;
-      const score = computeLeaderboardScore(
+      const userStats = await collectStatsForScore(testUsers[0].id);
+      const scoreBreakdown = computeLeaderboardScore(
+        'GLOBAL_TOP_HUMANS',
         {
-          ...user,
-          currentRank: user.currentRank || 'HUMAN_VERIFIED',
-          rankScore: user.rankScore || 0,
-          contributionScore: user.contributionScore || 0,
-          engagementScore: user.engagementScore || 0,
-          totalEarnings: user.totalEarnings || 0,
-        },
-        'GLOBAL_TOP_HUMANS'
+          ...userStats,
+          totalEarnings: 0,
+        }
       );
-      console.log(`   ✓ Leaderboard score: ${score}`);
+      console.log(`   ✓ Leaderboard score: ${scoreBreakdown.total}`);
     }
 
     // Summary
