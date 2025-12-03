@@ -14,23 +14,24 @@ export const metadata: Metadata = {
   description: 'A social platform built for verified humans using World ID',
   keywords: ['social', 'twitter', 'world id', 'minikit', 'blockchain', 'humanverse'],
   authors: [{ name: 'H World Team' }],
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   icons: {
     icon: '/favicon.ico',
     apple: '/favicon.ico',
   },
-  themeColor: '#00FFBE',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'H World',
   },
   manifest: '/manifest.json',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#00FFBE',
 };
 
 interface RootLayoutProps {
