@@ -1,22 +1,57 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Camera } from 'lucide-react';
 import { User } from '@/types';
+import { AvatarInitial } from '@/components/ui/AvatarInitial';
 
 interface EditProfileModalProps {
   user: User;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (updatedUser: { displayName: string; username: string; bio: string }) => void;
+  onSave: (updatedUser: { displayName: string; username: string; bio: string; profilePictureUrl?: string }) => void;
 }
 
 export default function EditProfileModal({ user, isOpen, onClose, onSave }: EditProfileModalProps) {
   const [displayName, setDisplayName] = useState(user.displayName || '');
   const [username, setUsername] = useState(user.username || '');
   const [bio, setBio] = useState(user.bio || '');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
 
   const handleSave = async () => {
     if (!displayName.trim() || !username.trim()) {
@@ -48,6 +83,29 @@ export default function EditProfileModal({ user, isOpen, onClose, onSave }: Edit
     setError('');
 
     try {
+      let profilePictureUrl = user.profilePictureUrl;
+
+      // Upload profile picture if selected
+      if (selectedImage) {
+        setUploadingImage(true);
+        const formData = new FormData();
+        formData.append('image', selectedImage);
+        
+        const uploadResponse = await fetch('/api/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!uploadResponse.ok) {
+          const error = await uploadResponse.json();
+          throw new Error(error.error || 'Failed to upload image');
+        }
+        
+        const uploadData = await uploadResponse.json();
+        profilePictureUrl = uploadData.url;
+        setUploadingImage(false);
+      }
+
       const response = await fetch('/api/users/profile', {
         method: 'PUT',
         headers: {
@@ -58,6 +116,7 @@ export default function EditProfileModal({ user, isOpen, onClose, onSave }: Edit
           displayName: displayName.trim(),
           username: username.trim().toLowerCase(),
           bio: bio.trim(),
+          profilePictureUrl,
         }),
       });
 
@@ -67,6 +126,7 @@ export default function EditProfileModal({ user, isOpen, onClose, onSave }: Edit
           displayName: updatedUser.displayName,
           username: updatedUser.username,
           bio: updatedUser.bio,
+          profilePictureUrl: updatedUser.profilePictureUrl,
         });
         onClose();
       } else {
@@ -74,9 +134,10 @@ export default function EditProfileModal({ user, isOpen, onClose, onSave }: Edit
         setError(errorData.error || 'Failed to update profile');
       }
     } catch (error) {
-      setError('Failed to update profile');
+      setError(error instanceof Error ? error.message : 'Failed to update profile');
     } finally {
       setSaving(false);
+      setUploadingImage(false);
     }
   };
 
@@ -103,6 +164,57 @@ export default function EditProfileModal({ user, isOpen, onClose, onSave }: Edit
               {error}
             </div>
           )}
+
+          {/* Profile Picture Upload */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Profile Picture
+            </label>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                {imagePreview || user.profilePictureUrl || user.avatar ? (
+                  <img
+                    src={imagePreview || user.profilePictureUrl || user.avatar || ''}
+                    alt="Profile"
+                    className="w-20 h-20 rounded-full object-cover border-2 border-border"
+                  />
+                ) : (
+                  <AvatarInitial
+                    name={user.displayName || user.username || 'U'}
+                    imageUrl={undefined}
+                    size="lg"
+                  />
+                )}
+                <label
+                  htmlFor="profile-picture-input"
+                  className="absolute bottom-0 right-0 bg-brand hover:bg-brand/80 text-black p-2 rounded-full cursor-pointer transition-colors"
+                >
+                  <Camera size={16} />
+                </label>
+                <input
+                  id="profile-picture-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Upload a profile picture (max 5MB)
+                </p>
+                {(imagePreview || selectedImage) && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="text-sm text-red-500 hover:text-red-400 transition-colors"
+                  >
+                    Remove image
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
@@ -164,10 +276,15 @@ export default function EditProfileModal({ user, isOpen, onClose, onSave }: Edit
           </button>
           <button
             onClick={handleSave}
-            disabled={saving || !displayName.trim() || !username.trim()}
+            disabled={saving || uploadingImage || !displayName.trim() || !username.trim()}
             className="px-4 py-2 bg-brand text-black font-semibold rounded-lg hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
-            {saving ? (
+            {uploadingImage ? (
+              <>
+                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                Uploading image...
+              </>
+            ) : saving ? (
               <>
                 <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                 Saving...

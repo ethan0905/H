@@ -32,20 +32,13 @@ export function SeasonOneBadge({
   return (
     <div 
       className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 ${sizeClasses[size]} ${className}`}
-      title="Season 1 OG Human - Founding Member"
+      title="Season 1 OG Human"
     >
       <span className={iconSizeClasses[size]}>👑</span>
       {showLabel && (
-        <>
-          <span className={`font-semibold text-yellow-400 ${textSizeClasses[size]}`}>
-            Season 1 OG
-          </span>
-          {size !== 'sm' && (
-            <span className={`text-yellow-400/70 ${textSizeClasses[size]}`}>
-              Founding Member
-            </span>
-          )}
-        </>
+        <span className={`font-semibold text-yellow-400 ${textSizeClasses[size]}`}>
+          Season 1 OG Human
+        </span>
       )}
     </div>
   );

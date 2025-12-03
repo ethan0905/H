@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 // PUT /api/users/profile - Update user profile
 export async function PUT(request: NextRequest) {
   try {
-    const { userId, displayName, username, bio } = await request.json();
+    const { userId, displayName, username, bio, profilePictureUrl } = await request.json();
 
     if (!userId || !displayName || !username) {
       return NextResponse.json(
@@ -45,6 +45,10 @@ export async function PUT(request: NextRequest) {
         displayName,
         username,
         bio: bio || null,
+        ...(profilePictureUrl && {
+          profilePictureUrl,
+          avatar: profilePictureUrl,
+        }),
       },
     });
 
@@ -53,6 +57,8 @@ export async function PUT(request: NextRequest) {
       displayName: updatedUser.displayName,
       username: updatedUser.username,
       bio: updatedUser.bio,
+      profilePictureUrl: updatedUser.profilePictureUrl,
+      avatar: updatedUser.avatar,
     });
   } catch (error) {
     console.error('Error updating user profile:', error);

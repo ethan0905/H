@@ -74,6 +74,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
   const [gamificationLoading, setGamificationLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'tweets' | 'likes' | 'retweets' | 'comments'>('tweets');
   const [loading, setLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -174,6 +175,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
 
     // Fetch user tweets from API
     const fetchUserTweets = async () => {
+      setTabLoading(true);
       try {
         console.log('Profile: Fetching tweets for user:', userId);
         let url = `/api/users/${encodeURIComponent(userId)}/tweets?type=tweets`;
@@ -194,6 +196,8 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
       } catch (error) {
         console.error('Profile: Error fetching user tweets:', error);
         setUserTweets([]);
+      } finally {
+        setTabLoading(false);
       }
     };
 
@@ -269,6 +273,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
   const [commentedTweets, setCommentedTweets] = useState<Tweet[]>([]);
 
   const fetchLikedTweets = async () => {
+    setTabLoading(true);
     try {
       let url = `/api/users/${encodeURIComponent(userId)}/tweets?type=likes`;
       if (currentUser) {
@@ -283,10 +288,13 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
     } catch (error) {
       console.error('Error fetching liked tweets:', error);
       setLikedTweets([]);
+    } finally {
+      setTabLoading(false);
     }
   };
 
   const fetchRetweetedTweets = async () => {
+    setTabLoading(true);
     try {
       let url = `/api/users/${encodeURIComponent(userId)}/tweets?type=retweets`;
       if (currentUser) {
@@ -301,6 +309,8 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
     } catch (error) {
       console.error('Error fetching retweeted tweets:', error);
       setRetweetedTweets([]);
+    } finally {
+      setTabLoading(false);
     }
   };
 
@@ -309,6 +319,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
   const getCommentedTweets = () => commentedTweets;
 
   const fetchCommentedTweets = async () => {
+    setTabLoading(true);
     try {
       let url = `/api/users/${encodeURIComponent(userId)}/comments`;
       if (currentUser) {
@@ -323,6 +334,8 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
     } catch (error) {
       console.error('Error fetching commented tweets:', error);
       setCommentedTweets([]);
+    } finally {
+      setTabLoading(false);
     }
   };
 
@@ -361,7 +374,7 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
     }
   };
 
-  const handleProfileUpdate = (updatedData: { displayName: string; username: string; bio: string }) => {
+  const handleProfileUpdate = (updatedData: { displayName: string; username: string; bio: string; profilePictureUrl?: string }) => {
     if (profileUser) {
       // Update the local profile user state
       const updatedProfileUser = {
@@ -369,6 +382,10 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
         displayName: updatedData.displayName,
         username: updatedData.username,
         bio: updatedData.bio,
+        ...(updatedData.profilePictureUrl && { 
+          profilePictureUrl: updatedData.profilePictureUrl,
+          avatar: updatedData.profilePictureUrl 
+        }),
       };
       setProfileUser(updatedProfileUser);
 
@@ -635,13 +652,42 @@ export default function Profile({ userId, user: initialUser }: ProfileProps) {
 
         {/* Tweet Feed */}
         <div className="bg-black min-h-screen">
-          {getDisplayTweets().length === 0 ? (
-            <div className="bg-black p-8 text-center border-b border-gray-800">
-              <p className="text-gray-400">
+          {tabLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="p-6 animate-pulse border-b border-gray-800">
+                  <div className="flex space-x-3">
+                    <div className="w-12 h-12 bg-gray-800 rounded-full"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-800 rounded w-1/4 mb-2"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-800 rounded"></div>
+                        <div className="h-4 bg-gray-800 rounded w-3/4"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : getDisplayTweets().length === 0 ? (
+            <div className="bg-black p-12 text-center border-b border-gray-800">
+              <div className="text-6xl mb-4">
+                {activeTab === 'tweets' && '📝'}
+                {activeTab === 'likes' && '❤️'}
+                {activeTab === 'retweets' && '🔁'}
+                {activeTab === 'comments' && '💬'}
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">
                 {activeTab === 'tweets' && 'No tweets yet'}
                 {activeTab === 'likes' && 'No liked tweets'}
                 {activeTab === 'retweets' && 'No retweets'}
                 {activeTab === 'comments' && 'No commented tweets'}
+              </h3>
+              <p className="text-gray-400">
+                {activeTab === 'tweets' && 'Start sharing your thoughts with the world.'}
+                {activeTab === 'likes' && 'Liked tweets will appear here.'}
+                {activeTab === 'retweets' && 'Retweeted posts will appear here.'}
+                {activeTab === 'comments' && 'Commented tweets will appear here.'}
               </p>
             </div>
           ) : (
