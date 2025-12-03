@@ -85,6 +85,8 @@ async function seedInitialData() {
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('📥 GET /api/tweets - Request received');
+    
     // Ensure seed data exists
     await seedInitialData();
 
@@ -92,6 +94,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
     const userId = searchParams.get('userId'); // Optional: to get user-specific interaction status
+
+    console.log('📊 Fetching tweets:', { limit, offset, userId });
 
     // Fetch tweets with user data and counts
     const tweets = await prisma.tweet.findMany({
@@ -112,12 +116,21 @@ export async function GET(request: NextRequest) {
       take: limit,
     });
 
+    // Filter out tweets with missing authors (orphaned tweets)
+    const validTweets = tweets.filter((tweet: any) => {
+      if (!tweet.author) {
+        console.warn(`⚠️ Tweet ${tweet.id} has missing author, skipping`);
+        return false;
+      }
+      return true;
+    });
+
     const totalCount = await prisma.tweet.count();
 
     // Get user interactions if userId provided
     let userInteractions: Record<string, { isLiked: boolean; isRetweeted: boolean }> = {};
     if (userId) {
-      const tweetIds = tweets.map((tweet: any) => tweet.id);
+      const tweetIds = validTweets.map((tweet: any) => tweet.id);
       const [likes, retweets] = await Promise.all([
         prisma.like.findMany({
           where: {
@@ -147,23 +160,28 @@ export async function GET(request: NextRequest) {
       }, {} as Record<string, { isLiked: boolean; isRetweeted: boolean }>);
     }
 
-    // Get comment counts for all tweets
-    const tweetIds = tweets.map((tweet: any) => tweet.id);
-    const commentCounts = await Promise.all(
-      tweetIds.map(async (tweetId: string) => {
-        const count = await prisma.comment.count({
-          where: { tweetId }
-        });
-        return { tweetId, count };
-      })
-    );
-    const commentCountMap = commentCounts.reduce((acc: any, { tweetId, count }) => {
-      acc[tweetId] = count;
+    // Get comment counts for all valid tweets in a single query
+    const tweetIds = validTweets.map((tweet: any) => tweet.id);
+    
+    // Use groupBy to get counts in a single query instead of N queries
+    const commentCounts = await prisma.comment.groupBy({
+      by: ['tweetId'],
+      where: {
+        tweetId: { in: tweetIds }
+      },
+      _count: {
+        id: true
+      }
+    });
+    
+    // Create a map for quick lookup
+    const commentCountMap = commentCounts.reduce((acc: any, item) => {
+      acc[item.tweetId] = item._count.id;
       return acc;
-    }, {});
+    }, {} as Record<string, number>);
 
     // Transform to match frontend format
-    const transformedTweets: Tweet[] = tweets.map((tweet: any) => ({
+    const transformedTweets: Tweet[] = validTweets.map((tweet: any) => ({
       id: tweet.id,
       content: tweet.content,
       author: {
@@ -193,15 +211,21 @@ export async function GET(request: NextRequest) {
       isRetweeted: userInteractions[tweet.id]?.isRetweeted || false,
     }));
 
+    console.log('✅ Successfully fetched tweets:', {
+      count: transformedTweets.length,
+      hasMore: offset + limit < totalCount,
+      total: totalCount
+    });
+
     return NextResponse.json({
       tweets: transformedTweets,
       hasMore: offset + limit < totalCount,
       total: totalCount,
     });
   } catch (error) {
-    console.error('Error fetching tweets:', error);
+    console.error('❌ Error fetching tweets:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch tweets' },
+      { error: 'Failed to fetch tweets', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

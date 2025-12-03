@@ -22,7 +22,8 @@ export function Feed({ userId, profile }: FeedProps) {
     } else {
       fetchTweets();
     }
-  }, [fetchTweets, isAuthenticated, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.id]); // Only re-fetch when auth status or user ID changes
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore) return;

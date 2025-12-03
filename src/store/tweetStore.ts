@@ -33,6 +33,7 @@ export const useTweetStore = create<TweetState>((set, get) => ({
 
   fetchTweets: async (offset = 0, userId?: string) => {
     try {
+      console.log('🔄 fetchTweets called:', { offset, userId });
       set({ loading: true, error: null });
       
       let url = `/api/tweets?offset=${offset}&limit=20`;
@@ -40,18 +41,29 @@ export const useTweetStore = create<TweetState>((set, get) => ({
         url += `&userId=${encodeURIComponent(userId)}`;
       }
       
+      console.log('📡 Fetching from URL:', url);
       const response = await fetch(url);
       const data = await response.json();
       
+      console.log('📦 Response received:', { 
+        ok: response.ok, 
+        status: response.status,
+        dataKeys: Object.keys(data),
+        tweetsCount: data.tweets?.length
+      });
+      
       if (!response.ok) {
+        console.error('❌ Response not OK:', data);
         throw new Error(data.error || 'Failed to fetch tweets');
       }
       
       const { tweets: newTweets, hasMore } = data;
       
       if (offset === 0) {
+        console.log('✅ Setting tweets (fresh load):', newTweets.length);
         set({ tweets: newTweets, hasMore, loading: false });
       } else {
+        console.log('✅ Appending tweets:', newTweets.length);
         set(state => ({ 
           tweets: [...state.tweets, ...newTweets], 
           hasMore, 
@@ -59,6 +71,7 @@ export const useTweetStore = create<TweetState>((set, get) => ({
         }));
       }
     } catch (error) {
+      console.error('❌ fetchTweets error:', error);
       set({ 
         error: error instanceof Error ? error.message : 'Failed to fetch tweets',
         loading: false 
