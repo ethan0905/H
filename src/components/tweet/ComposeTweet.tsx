@@ -210,50 +210,27 @@ export default function ComposeTweet({
       // Upload video if selected
       if (videoFile) {
         setUploadingVideo(true);
-        console.log('📤 [CLIENT] Starting video upload...');
+        console.log('📤 [CLIENT] Starting client-side video upload...');
         
         try {
-          const formData = new FormData();
-          formData.append('video', videoFile);
+          // Use @vercel/blob client-side upload to bypass 4.5MB serverless limit
+          const { upload } = await import('@vercel/blob/client');
           
-          // Add timeout to the fetch request (60 seconds)
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => {
-            console.error('⏱️ [CLIENT] Upload timeout');
-            controller.abort();
-          }, 60000);
-          
-          const uploadResponse = await fetch('/api/upload-video', {
-            method: 'POST',
-            body: formData,
-            signal: controller.signal,
+          const blob = await upload(videoFile.name, videoFile, {
+            access: 'public',
+            handleUploadUrl: '/api/upload-video',
           });
           
-          clearTimeout(timeoutId);
           setUploadingVideo(false);
+          console.log('✅ [CLIENT] Video uploaded successfully:', blob.url);
           
-          if (!uploadResponse.ok) {
-            const error = await uploadResponse.json();
-            console.error('❌ [CLIENT] Upload failed:', error);
-            throw new Error(error.error || 'Failed to upload video');
-          }
-          
-          const uploadData = await uploadResponse.json();
-          console.log('✅ [CLIENT] Video uploaded successfully:', {
-            url: uploadData.url,
-            uploadTime: uploadData.uploadTime
-          });
-          
-          mediaUrl = uploadData.url;
-          thumbnailUrl = uploadData.thumbnailUrl;
+          mediaUrl = blob.url;
+          thumbnailUrl = null;
           mediaType = 'video';
         } catch (uploadError: any) {
           setUploadingVideo(false);
-          
-          if (uploadError.name === 'AbortError') {
-            throw new Error('Video upload timed out. Please try a smaller video or check your internet connection.');
-          }
-          throw uploadError;
+          console.error('❌ [CLIENT] Upload failed:', uploadError);
+          throw new Error(`Failed to upload video: ${uploadError.message}`);
         }
       }
 
