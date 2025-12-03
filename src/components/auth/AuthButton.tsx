@@ -217,6 +217,18 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
         throw new Error('Wallet authentication failed');
       }
 
+      // Try to get World ID username
+      let worldIdUsername: string | undefined;
+      try {
+        if (MiniKit.isInstalled() && (MiniKit as any).user) {
+          const userInfo = (MiniKit as any).user;
+          worldIdUsername = userInfo.username || userInfo.worldId || userInfo.name;
+          console.log('✅ Got World ID username:', worldIdUsername);
+        }
+      } catch (error) {
+        console.log('⚠️ Could not access MiniKit.user:', error);
+      }
+
       // Verify the wallet auth in backend
       const response = await fetch('/api/verify-wallet-auth', {
         method: 'POST',
@@ -226,27 +238,26 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
         body: JSON.stringify({
           payload: finalPayload,
           nonce,
+          worldIdUsername,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Wallet authentication failed');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('❌ Wallet auth verification failed:', errorData);
+        throw new Error(errorData.error || 'Wallet authentication failed');
       }
 
       const result = await response.json();
+      console.log('✅ Wallet auth verified:', result);
       
-      // Create user from wallet address
-      const mockUser = {
-        id: finalPayload.address,
-        walletAddress: finalPayload.address,
-        username: `user_${finalPayload.address.slice(-8)}`,
-        displayName: 'World User',
-        verified: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      setUser(mockUser);
+      // Use the user from the backend response
+      if (result.user) {
+        setUser(result.user);
+        console.log('✅ User set from backend:', result.user.username);
+      } else {
+        throw new Error('No user data returned from verification');
+      }
       
     } catch (error) {
       console.error('Wallet auth error:', error);

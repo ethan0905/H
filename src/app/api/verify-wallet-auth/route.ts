@@ -4,10 +4,17 @@ import { verifySiweMessage } from '@worldcoin/minikit-js';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { address, message, signature, nonce, worldIdUsername } = body;
+    console.log('📥 Received body:', JSON.stringify(body, null, 2));
+    
+    // Support both payload format and direct parameters
+    const payload = body.payload || body;
+    const { address, message, signature } = payload;
+    const nonce = body.nonce || payload.nonce;
+    const worldIdUsername = body.worldIdUsername || payload.worldIdUsername;
 
     // Validate required fields
     if (!address || !message || !signature) {
+      console.error('❌ Missing required fields:', { address: !!address, message: !!message, signature: !!signature });
       return NextResponse.json(
         { error: 'Address, message, and signature are required' },
         { status: 400 }
