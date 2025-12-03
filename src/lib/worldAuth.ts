@@ -18,6 +18,7 @@ export interface WalletAuthResult {
     signature: string;
     address: string;
     message: string;
+    worldIdUsername?: string;
   };
   error?: string;
 }
@@ -85,6 +86,19 @@ export async function initiateWalletAuth(params: WalletAuthParams): Promise<Wall
     // Extract the signature and address from the response
     const { signature, address, message } = finalPayload;
 
+    // Try to get World ID user info if available
+    let worldIdUsername: string | undefined;
+    try {
+      // MiniKit.user contains the World ID profile info
+      if (MiniKit.isInstalled() && (MiniKit as any).user) {
+        const userInfo = (MiniKit as any).user;
+        worldIdUsername = userInfo.username || userInfo.name;
+        console.log('✅ Got World ID username:', worldIdUsername);
+      }
+    } catch (error) {
+      console.log('⚠️ Could not access MiniKit.user:', error);
+    }
+
     return {
       success: true,
       payload: {
@@ -92,6 +106,7 @@ export async function initiateWalletAuth(params: WalletAuthParams): Promise<Wall
         signature,
         address,
         message,
+        worldIdUsername, // Include World ID username if available
       },
     };
   } catch (error) {

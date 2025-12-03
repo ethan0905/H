@@ -420,9 +420,22 @@ function CommunitiesView() {
 
     const Icon = iconMap[community.name] || Globe
     const gradient = gradientMap[community.name] || "from-gray-500 to-gray-700"
+    
+    const CommunityBannerUpload = require('@/components/community/CommunityBannerUpload').default
 
     return (
       <div className="min-h-screen bg-black text-white pb-20">
+        {/* Community Banner */}
+        {community.bannerUrl && (
+          <div className="w-full h-48 overflow-hidden border-b border-gray-800">
+            <img
+              src={community.bannerUrl}
+              alt={`${community.name} banner`}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        
         {/* Header */}
         <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-xl border-b border-gray-800">
           <div className="px-4 py-4 flex items-center gap-3">
@@ -452,6 +465,37 @@ function CommunitiesView() {
 
         {/* Community Feed */}
         <div className="p-4">
+          {/* Debug info - visible temporarily to check data */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-700 rounded text-xs">
+              <div><strong>Debug Info:</strong></div>
+              <div>Username: {user?.username}</div>
+              <div>isSuperAdmin: {String(user?.isSuperAdmin)}</div>
+              <div>isJoined: {String(community.isJoined)}</div>
+              <div>Should show upload: {String(user?.isSuperAdmin && community.isJoined)}</div>
+            </div>
+          )}
+          
+          {/* Super Admin Banner Upload - Only visible to super admin (@ethan) */}
+          {((user?.isSuperAdmin || user?.username?.toLowerCase() === 'ethan') && community.isJoined) && (
+            <div className="mb-6 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm font-semibold text-[#00FFBD]">🛡️ Super Admin</span>
+                <span className="text-xs text-gray-400">Banner Management</span>
+              </div>
+              <CommunityBannerUpload
+                communityId={community.id.toString()}
+                currentBannerUrl={community.bannerUrl}
+                onBannerUpdated={(url: string | null) => {
+                  // Update local state
+                  setCommunities(communities.map(c => 
+                    c.id === community.id ? { ...c, bannerUrl: url } : c
+                  ))
+                }}
+              />
+            </div>
+          )}
+
           {community.isJoined ? (
             <>
               {/* Compose in community */}
@@ -567,7 +611,17 @@ function CommunitiesView() {
               onClick={() => setSelectedCommunity(community.id)}
             >
               {/* Banner */}
-              <div className={`h-24 bg-gradient-to-r ${gradient} opacity-20`} />
+              {community.bannerUrl ? (
+                <div className="h-24 overflow-hidden">
+                  <img
+                    src={community.bannerUrl}
+                    alt={`${community.name} banner`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className={`h-24 bg-gradient-to-r ${gradient} opacity-20`} />
+              )}
 
               {/* Content */}
               <div className="p-4 -mt-8">

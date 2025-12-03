@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
       category: community.category,
       iconGradient: community.iconGradient,
       iconName: community.iconName,
+      bannerUrl: (community as any).bannerUrl || null,
       memberCount: community._count.members,
       isJoined: userId ? community.members.length > 0 : false
     }));

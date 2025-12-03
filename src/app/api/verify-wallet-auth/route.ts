@@ -4,7 +4,7 @@ import { verifySiweMessage } from '@worldcoin/minikit-js';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { address, message, signature, nonce } = body;
+    const { address, message, signature, nonce, worldIdUsername } = body;
 
     // Validate required fields
     if (!address || !message || !signature) {
@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🔐 Verifying wallet auth for address:', address);
+    console.log('👤 World ID username from client:', worldIdUsername);
 
     // Verify the signature using verifySiweMessage from MiniKit
     // This validates that the signature was created by the claimed address
@@ -68,29 +69,79 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ User is orb-verified');
 
-    // Generate or fetch user ID
-    const userId = `user_${address.substring(0, 8)}`;
+    // Import prisma to fetch/create user from database
+    const { prisma } = await import('@/lib/prisma');
 
-    // Extract username from message if available
-    const username = `user_${address.substring(0, 6)}`;
+    // Try to find existing user by wallet address (primary identifier)
+    let user: any = await prisma.user.findUnique({
+      where: { walletAddress: address },
+    });
 
-    // Create user data
-    const userData = {
-      id: userId,
-      walletAddress: address,
-      username,
-      displayName: username,
-      verified: true,
-      isVerified: true,
-      verificationLevel: 'orb' as const,
-      nullifierHash: `nullifier_${address}`, // In real app, get from World ID proof
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    // Determine username with priority:
+    // 1. worldIdUsername from MiniKit (passed from client)
+    // 2. Extract from SIWE message
+    // 3. Fallback to address-based username
+    let username: string = worldIdUsername || null;
+    
+    // If no username from client, try to extract from the SIWE message
+    if (!username && message) {
+      const usernameMatch = message.match(/@(\w+)/);
+      if (usernameMatch) {
+        username = usernameMatch[1];
+        console.log('✅ Extracted username from message:', username);
+      }
+    }
+
+    // Fallback: generate username from address if World ID doesn't provide one
+    if (!username) {
+      username = `user_${address.substring(2, 8)}`;
+      console.log('⚠️ Using fallback username:', username);
+    } else {
+      console.log('✅ Using World ID username:', username);
+    }
+
+    // If user doesn't exist, create a new one
+    if (!user) {
+      console.log('🆕 Creating new user with username:', username);
+      
+      user = await prisma.user.create({
+        data: {
+          walletAddress: address,
+          username,
+          displayName: worldIdUsername ? `@${worldIdUsername}` : username,
+          isVerified: true,
+          verificationLevel: 'orb',
+          nullifierHash: `nullifier_${address}`,
+          // Set super admin for @ethan
+          ...(username.toLowerCase() === 'ethan' && { isSuperAdmin: true } as any),
+        },
+      });
+      
+      console.log('✅ User created:', user.id, user.username);
+    } else {
+      // User exists - update with latest World ID username if we got one from client
+      const shouldUpdateUsername = worldIdUsername && 
+                                   user.username !== worldIdUsername && 
+                                   !user.username.startsWith('user_'); // Don't update if user has a real username already
+      
+      if (shouldUpdateUsername) {
+        console.log(`📝 Updating username from ${user.username} to ${worldIdUsername}`);
+        
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            username: worldIdUsername,
+            displayName: `@${worldIdUsername}`,
+          },
+        });
+      }
+      
+      console.log('✅ User found:', user.id, user.username);
+    }
 
     return NextResponse.json({
       success: true,
-      user: userData,
+      user,
     });
   } catch (error) {
     console.error('❌ Error verifying wallet authentication:', error);
