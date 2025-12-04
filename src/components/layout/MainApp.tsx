@@ -675,7 +675,7 @@ function CreateView({ onPostCreated }: { onPostCreated?: () => void }) {
   const [selectedType, setSelectedType] = useState<"text" | "image" | "video">("text")
   const [isPosting, setIsPosting] = useState(false)
 
-  const estimatedEarnings = Math.min(content.length * 0.05, 50)
+  const estimatedEarnings = Math.min(content.length * 0.0125, 12.5)
 
   const handlePost = async () => {
     if (!content.trim() || !user || isPosting) return
@@ -987,21 +987,21 @@ function EarningsView() {
       }
       
       // Step 3: Create payment command
-      // For testing: Fixed price of 0.01 WLD
+      // Production price: $7.40 in WLD tokens
       const payload = {
         reference: paymentReference,
         to: '0x3ffd3381a60c3bd973acbe1c94076de85b3d1fc9', // Your recipient address
         tokens: [
           {
             symbol: Tokens.WLD,
-            token_amount: tokenToDecimals(0.01, Tokens.WLD).toString(), // 0.01 WLD for testing
+            token_amount: tokenToDecimals(7.40, Tokens.WLD).toString(), // 7.40 WLD
           },
           {
             symbol: Tokens.USDC,
-            token_amount: tokenToDecimals(0.01, Tokens.USDC).toString(), // 0.01 USDC for testing
+            token_amount: tokenToDecimals(7.40, Tokens.USDC).toString(), // 7.40 USDC
           },
         ],
-        description: 'H World Pro Subscription - Monthly (Testing: 0.01 WLD)',
+        description: 'H World Pro Subscription - Monthly ($7.40)',
       }
       
       console.log('📤 Sending payment command:', payload)
