@@ -276,6 +276,7 @@ model Community {
   iconGradient          String    // e.g. "from-blue-500 to-cyan-500"
   iconName              String    // e.g. "Bot", "Globe"
   bannerUrl             String?   // Community banner image (super admin only)
+  logoUrl               String?   // Community logo/profile picture (super admin only)
   memberCount           Int       @default(0)
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt

@@ -426,6 +426,7 @@ function CommunitiesView() {
     const gradient = gradientMap[community.name] || "from-gray-500 to-gray-700"
     
     const CommunityBannerUpload = require('@/components/community/CommunityBannerUpload').default
+    const CommunityLogoUpload = require('@/components/community/CommunityLogoUpload').default
 
     return (
       <div className="min-h-screen bg-black text-white pb-20">
@@ -454,11 +455,22 @@ function CommunitiesView() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center`}
-              >
-                <Icon className="w-5 h-5 text-white" />
-              </div>
+              {/* Logo - Custom image or gradient icon */}
+              {(community as any).logoUrl ? (
+                <div className="w-10 h-10 rounded-xl overflow-hidden">
+                  <img
+                    src={(community as any).logoUrl}
+                    alt={`${community.name} logo`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div
+                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center`}
+                >
+                  <Icon className="w-5 h-5 text-white" />
+                </div>
+              )}
               <div>
                 <h1 className="text-xl font-bold">{community.name}</h1>
                 <p className="text-xs text-gray-500">{community.memberCount.toLocaleString()} members</p>
@@ -480,23 +492,43 @@ function CommunitiesView() {
             </div>
           )}
           
-          {/* Super Admin Banner Upload - Only visible to super admin (@ethan) */}
+          {/* Super Admin Media Upload - Only visible to super admin (@ethan) */}
           {((user?.isSuperAdmin || user?.username?.toLowerCase() === 'ethan') && community.isJoined) && (
             <div className="mb-6 bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-4">
                 <span className="text-sm font-semibold text-[#00FFBD]">🛡️ Super Admin</span>
-                <span className="text-xs text-gray-400">Banner Management</span>
+                <span className="text-xs text-gray-400">Community Media Management</span>
               </div>
-              <CommunityBannerUpload
-                communityId={community.id.toString()}
-                currentBannerUrl={community.bannerUrl}
-                onBannerUpdated={(url: string | null) => {
-                  // Update local state
-                  setCommunities(communities.map(c => 
-                    c.id === community.id ? { ...c, bannerUrl: url } : c
-                  ))
-                }}
-              />
+              
+              {/* Logo Upload */}
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-300 mb-3">Community Logo</h4>
+                <CommunityLogoUpload
+                  communityId={community.id.toString()}
+                  currentLogoUrl={(community as any).logoUrl}
+                  onLogoUpdated={(url: string | null) => {
+                    // Update local state
+                    setCommunities(communities.map(c => 
+                      c.id === community.id ? { ...c, logoUrl: url } as any : c
+                    ))
+                  }}
+                />
+              </div>
+              
+              {/* Banner Upload */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-300 mb-3">Community Banner</h4>
+                <CommunityBannerUpload
+                  communityId={community.id.toString()}
+                  currentBannerUrl={community.bannerUrl}
+                  onBannerUpdated={(url: string | null) => {
+                    // Update local state
+                    setCommunities(communities.map(c => 
+                      c.id === community.id ? { ...c, bannerUrl: url } : c
+                    ))
+                  }}
+                />
+              </div>
             </div>
           )}
 
@@ -629,11 +661,22 @@ function CommunitiesView() {
 
               {/* Content */}
               <div className="p-4 -mt-8 relative">
-                <div
-                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-3 border-4 border-black relative z-10`}
-                >
-                  <Icon className="w-8 h-8 text-white" />
-                </div>
+                {/* Logo - Custom image or gradient icon */}
+                {(community as any).logoUrl ? (
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden mb-3 border-4 border-black relative z-10 shadow-xl">
+                    <img
+                      src={(community as any).logoUrl}
+                      alt={`${community.name} logo`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-3 border-4 border-black relative z-10`}
+                  >
+                    <Icon className="w-8 h-8 text-white" />
+                  </div>
+                )}
 
                 <h3 className="text-xl font-bold mb-1">{community.name}</h3>
                 <p className="text-xs text-gray-500 mb-2">{community.category}</p>
