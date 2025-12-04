@@ -616,7 +616,7 @@ function CommunitiesView() {
             >
               {/* Banner */}
               {community.bannerUrl ? (
-                <div className="h-24 overflow-hidden">
+                <div className="h-24 overflow-hidden relative">
                   <img
                     src={community.bannerUrl}
                     alt={`${community.name} banner`}
@@ -624,13 +624,13 @@ function CommunitiesView() {
                   />
                 </div>
               ) : (
-                <div className={`h-24 bg-gradient-to-r ${gradient} opacity-20`} />
+                <div className={`h-24 bg-gradient-to-r ${gradient} opacity-20 relative`} />
               )}
 
               {/* Content */}
-              <div className="p-4 -mt-8">
+              <div className="p-4 -mt-8 relative">
                 <div
-                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-3 border-4 border-black`}
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-3 border-4 border-black relative z-10`}
                 >
                   <Icon className="w-8 h-8 text-white" />
                 </div>
