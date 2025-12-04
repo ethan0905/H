@@ -1,5 +1,4 @@
 "use client"
-import { Button } from "@/components/ui/button"
 import { useUserStore } from '@/store/userStore'
 import { useRouter } from 'next/navigation'
 
@@ -61,21 +60,20 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
 
       {/* Compose Button */}
       <div className="space-y-3">
-        <Button 
+        <button 
           onClick={() => onViewChange("create")}
           className="w-full bg-[#00FFBD] hover:bg-[#00E5A8] text-black font-semibold rounded-lg py-3 transition-all shadow-[0_0_20px_rgba(0,255,189,0.3)] hover:shadow-[0_0_30px_rgba(0,255,189,0.5)]"
         >
           <span className="md:hidden text-2xl">+</span>
           <span className="hidden md:inline">+ Create</span>
-        </Button>
-        <Button
+        </button>
+        <button
           onClick={handleLogout}
-          variant="outline"
-          className="w-full border-gray-700 text-white hover:bg-gray-900 hover:border-gray-600 rounded-lg py-3 bg-transparent"
+          className="w-full border border-gray-700 text-white hover:bg-gray-900 hover:border-gray-600 rounded-lg py-3 bg-transparent transition-colors"
         >
           <span className="md:hidden text-xl">🚪</span>
           <span className="hidden md:inline">Logout</span>
-        </Button>
+        </button>
       </div>
     </aside>
   )
