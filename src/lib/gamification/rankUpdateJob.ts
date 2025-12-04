@@ -59,7 +59,7 @@ export async function updateAllUserRanks(): Promise<{
           rankScore: number;
         }> = [];
 
-        for (const [userId, stats] of statsMap.entries()) {
+        for (const [userId, stats] of Array.from(statsMap.entries())) {
           try {
             // Compute new rank
             const rankResult = computeRankForUser(stats);
