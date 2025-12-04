@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { useUserStore } from '@/store/userStore';
 import TweetCard from '@/components/tweet/TweetCard';
 import { Tweet } from '@/types';
